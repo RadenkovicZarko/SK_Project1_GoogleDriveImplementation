@@ -4,12 +4,8 @@ import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.FileContent;
-import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.drive.Drive;
@@ -19,8 +15,8 @@ import com.google.api.services.drive.model.FileList;
 
 
 import java.io.*;
-import java.nio.file.Files;
 import java.util.*;
+import java.util.Date;
 
 
 public class GoogleDriveStorage extends StorageSpecification{
@@ -75,7 +71,6 @@ public class GoogleDriveStorage extends StorageSpecification{
                 return "";
 
         }
-        String id=null;
         String[] str= path.split("/+");
         List<String> listParentFolders=new ArrayList<>();
         listParentFolders.add(root);
@@ -86,7 +81,6 @@ public class GoogleDriveStorage extends StorageSpecification{
             }
 
             for(String folder:str) {
-                boolean pom = false;
                 List<String> newListParentFolders = new ArrayList<>();
                 for (String parentFolder : listParentFolders) {
                     FileList result;
@@ -134,9 +128,6 @@ public class GoogleDriveStorage extends StorageSpecification{
             {
                 service = getDriveService();
             }
-            List<File> files = new ArrayList<File>();
-
-
             FileList result = service.files().list()
                     .setQ("mimeType = 'application/vnd.google-apps.folder' and trashed=false and parents in 'root'")
                     .setFields(" files(id, name)")
@@ -208,10 +199,16 @@ public class GoogleDriveStorage extends StorageSpecification{
 //        storageSpecification.createFolderOnSpecifiedPath("Root123/Zarko","Zarko123");
 //        googleDriveStorage.moveFileFromDirectoryToAnother("z.txt","Root123/Zarko/Zarko123","Root123/Zarko/Radenkovic");
 
-        storageSpecification.deleteFileOrDirectory("Root123/");
+//        storageSpecification.deleteFileOrDirectory("Root123/Zarko/Skladiste123");
 
+//        storageSpecification.moveFileFromDirectoryToAnother("Root123/Test1.txt","Root123/Zarko");
 
+//        storageSpecification.downloadFileOrDirectory("Root123/unnamed.jpg","C:\\\\Users\\\\mega\\\\Radna površina");
 
+//        storageSpecification.renameFileOrDirectory("Root123/unnamed.jpg","slika.jpg");
+        GoogleDriveStorage googleDriveStorage=new GoogleDriveStorage();
+        //System.out.println(googleDriveStorage.retFolderIDForPath("Root123",""));
+        storageSpecification.allFilesFromDirectoryAndSubdirectory("");
     }
 
 
@@ -264,7 +261,7 @@ public class GoogleDriveStorage extends StorageSpecification{
     }
 
     @Override
-    boolean setRootFolderPathImplementation(String path) {
+    boolean setRootFolderPathInitialization(String path) {
         String id=retFolderIDForPath(path,"");
         if(id == null)
         {
@@ -280,7 +277,7 @@ public class GoogleDriveStorage extends StorageSpecification{
     boolean createFolderOnSpecifiedPath(String path,String name) {
         try{
             String id=retFolderIDForPath(path,super.getRootFolderPath());  // Ukoliko hoces da testiras, zadaj retFolderIDForPath(path,"")
-            if(id.equals(null))
+            if(id==null)
             {
                 return false;
             }
@@ -303,7 +300,7 @@ public class GoogleDriveStorage extends StorageSpecification{
     }
 
     @Override
-    public boolean putFileOnSpecifiedPath(List<String> listOfFiles, String path) {
+    public boolean putFilesOnSpecifiedPath(List<String> listOfFiles, String path) {
         try {
             String id=retFolderIDForPath(path,super.getRootFolderPath());  // Ukoliko hoces da testiras, zadaj retFolderIDForPath(path,"")
             if(id==null)
@@ -339,7 +336,7 @@ public class GoogleDriveStorage extends StorageSpecification{
     void deleteFileOrDirectory(String path) {
         try {
             String id=retFolderIDForPath(path,super.getRootFolderPath());  // Ukoliko hoces da testiras, zadaj retFolderIDForPath(path,"")
-            if(id.equals(null))
+            if(id==null)
             {
                 return;
             }
@@ -353,61 +350,200 @@ public class GoogleDriveStorage extends StorageSpecification{
     }
 
     @Override
-    void moveFileFromDirectoryToAnother(String pathFrom, String pathTo) {
+    boolean moveFileFromDirectoryToAnother(String pathFrom, String pathTo) {
         try {
-//            String id=retFolderIDForPath(pathFrom,super.getRootFolderPath());  // Ukoliko hoces da testiras, zadaj retFolderIDForPath(path,"")
-//            String id2=retFolderIDForPath(pathTo,super.getRootFolderPath());
-//            if(id.equals(null))
-//            {
-//                return;
-//            }
-//
-//            FileList result = service.files().list()
-//                    .setQ("parents in '" + id + "'")
-//                    .setFields("files(id, name)")
-//                    .execute();
-//
-//            for(File f:result.getFiles())
-//            {
-//                if(f.getName().equals(fileName))
-//                {
-//                    f.setWritersCanShare(true);
-//                    service.files().update(f.getId(),f).setAddParents(id2).setRemoveParents(id).execute();
-//
-//                    return;
-//                }
-//            }
+            String id=retFolderIDForPath(pathFrom,super.getRootFolderPath());  // Ukoliko hoces da testiras, zadaj retFolderIDForPath(path,"")
+            String id2=retFolderIDForPath(pathTo,super.getRootFolderPath());
+            if(id==null || id2==null)
+            {
+                return false;
+            }
+            File file=service.files().get(id).execute();
+            File copiedFile = new File();
+            copiedFile.setName(file.getName());
+            copiedFile.setParents(Collections.singletonList(id2));
+            service.files().copy(id,copiedFile).execute();
+            service.files().delete(id).execute();
+            return true;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return false;
+        }
+
+    }
+
+    @Override
+    void downloadFileOrDirectory(String pathFrom, String pathTo) {
+        try
+        {
+            String id=retFolderIDForPath(pathFrom,super.getRootFolderPath());
+            if(id==null)
+            {
+                return;
+            }
+            File file=service.files().get(id).execute();
+            java.io.File f=new java.io.File(pathTo+"\\"+file.getName());
+            OutputStream outputStream = new FileOutputStream(f);
+            service.files().get(id).executeMediaAndDownloadTo(outputStream);
+            outputStream.flush();
+            outputStream.close();
+            f.createNewFile();
         }
         catch (Exception e)
         {
             e.printStackTrace();
         }
-        return;
     }
 
     @Override
-    void downloadFileOrDirectory(String s, String s1) {
+    void renameFileOrDirectory(String path, String nameAfter) {
+        try
+        {
+//            String id=retFolderIDForPath(path,super.getRootFolderPath());
+//            if(id==null)
+//            {
+//                return;
+//            }
+//            File file = new File();
+//            file.setName(nameAfter);
+//             service.files().patch(fileId, file);
+//            patchRequest.setFields("title");
 
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     @Override
-    void renameFileOrDirectory(String s, String s1, String s2) {
+    HashMap<String, FileMetadata> filesFromDirectory(String path) {
+        HashMap<String, FileMetadata> hashMap=new HashMap<>();
+        try
+        {
+            String id=retFolderIDForPath(path,super.getRootFolderPath());
+            if(id==null)
+            {
+                return null;
+            }
+            if(service==null)
+            {
+                service=getDriveService();
+            }
+            FileList files=new FileList();
+            System.out.println(id);
+            if(!id.equals(""))
+                files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in '"+id+"'") .setFields("files(id, name, size,createdTime,fileExtension)").execute();
+            else
+                files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in 'root'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
 
+            for(File f:files.getFiles())
+            {
+                System.out.println(f.getSize()+" "+f.getName()+" "+f.getFileExtension());
+                FileMetadata fileMetadata=new FileMetadata(f.getSize(),f.getCreatedTime().toString(),f.getFileExtension(),f.getName());
+                hashMap.put(f.getName(),fileMetadata);
+            }
+
+            return hashMap;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override
-    HashMap<String, FileMetadata> filesFromDirectory(String s) {
-        return null;
+    HashMap<String, FileMetadata> filesFromChildrenDirectory(String path) {
+        HashMap<String, FileMetadata> hashMap=new HashMap<>();
+        try
+        {
+            String id=retFolderIDForPath(path,super.getRootFolderPath());
+            if(id==null)
+            {
+                return null;
+            }
+            if(service==null)
+            {
+                service=getDriveService();
+            }
+
+            FileList folderList;
+            if(!id.equals(""))
+                folderList=service.files().list().setQ("mimeType = 'application/vnd.google-apps.folder' and trashed = false and parents in '"+id+"'").execute();
+            else
+                folderList=service.files().list().setQ("mimeType = 'application/vnd.google-apps.folder' and trashed = false and parents in 'root'").execute();
+
+
+            for(File f:folderList.getFiles())
+            {
+                FileList files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false and parents in '"+f.getId()+"'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
+                //System.out.println(f.getName()+"-----------------------");
+                for(File f1:files.getFiles())
+                {
+                    //System.out.println(f1.getSize()+" "+f1.getName()+" "+f1.getFileExtension());
+                    FileMetadata fileMetadata=new FileMetadata(f1.getSize(),f1.getCreatedTime().toString(),f1.getFileExtension(),f1.getName());
+                    hashMap.put(f1.getName(),fileMetadata);
+                }
+            }
+            return hashMap;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override
-    HashMap<String, FileMetadata> filesFromChildrenDirectory(String s) {
-        return null;
-    }
+    HashMap<String, FileMetadata> allFilesFromDirectoryAndSubdirectory(String path) {
+        HashMap<String, FileMetadata> hashMap=new HashMap<>();
+        try
+        {
+            String id=retFolderIDForPath(path,super.getRootFolderPath());
+            if(id==null)
+            {
+                return null;
+            }
+            if(service==null)
+            {
+                service=getDriveService();
+            }
 
-    @Override
-    HashMap<String, FileMetadata> allFilesFromDirectoryAndSubdirectory(String s) {
-        return null;
+            List<File> folderList=new ArrayList<>();
+            if(!id.equals(""))
+                folderList=service.files().list().setQ("trashed=false and parents in '"+id+"'").execute().getFiles();
+            else
+                folderList=service.files().list().setQ("trashed=false and parents in 'root'").execute().getFiles();
+
+
+            while(!folderList.isEmpty()) {
+                List<File> newFolderList=new ArrayList<>();
+                for (File f : folderList) {
+
+                    //Ucitavanje podataka o fajlovima u trenutnom folderu
+                    FileList filesFromFolder = service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed=false and parents in ' " + f.getId() + "'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
+                    for (File f1 : filesFromFolder.getFiles()) {
+                        FileMetadata fileMetadata = new FileMetadata(f1.getSize(), f1.getCreatedTime().toString(), f1.getFileExtension(), f1.getName());
+                        hashMap.put(f1.getName(), fileMetadata);
+                    }
+
+                    //Ucitavanje novih podfoldera za citanje
+                    FileList foldersFromFolder = service.files().list().setQ("mimeType = 'application/vnd.google-apps.folder' and trashed=false and parents in ' " + f.getId() + "'").execute();
+                    newFolderList.addAll(foldersFromFolder.getFiles());
+                }
+                folderList=newFolderList;
+            }
+            return hashMap;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+
     }
 
     @Override
@@ -425,10 +561,28 @@ public class GoogleDriveStorage extends StorageSpecification{
         return null;
     }
 
+
+
+
+
     @Override
     HashMap<String, String> filesFromDirectorySubstring(String s, String s1) {
         return null;
     }
+
+    @Override
+    HashMap<String, String> filesFromChildrenDirectorySubstring(String s, String s1) {
+        return null;
+    }
+
+    @Override
+    HashMap<String, String> filesFromDirectoryAndSubdirectorySubstring(String s, String s1) {
+        return null;
+    }
+
+
+
+
 
     @Override
     String folderNameByFileName(String s) {
