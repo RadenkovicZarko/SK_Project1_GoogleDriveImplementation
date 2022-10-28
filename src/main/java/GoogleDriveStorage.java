@@ -115,9 +115,6 @@ public class GoogleDriveStorage extends StorageSpecification{
 
 
 
-
-
-
     String retFolderIDForPath(String path,String root)
     {
 
@@ -272,15 +269,16 @@ public class GoogleDriveStorage extends StorageSpecification{
         GoogleDriveStorage googleDriveStorage=new GoogleDriveStorage();
         //System.out.println(googleDriveStorage.retFolderIDForPath("Root123",""));
         //storageSpecification.allFilesFromDirectoryAndSubdirectory("Root123asd");
-        Map<String,FileMetadata> mapa =storageSpecification.filesFromDirectory("Root123/Zarko/Zarko123");
-        System.out.println("--------------------------------------------------------------------");
-        Map<String,FileMetadata> m = storageSpecification.sortFilesByCreatedDate(mapa,false);
+//        Map<String,FileMetadata> mapa =storageSpecification.filesFromDirectory("Root123/Zarko/Zarko123");
+//        System.out.println("--------------------------------------------------------------------");
+//        Map<String,FileMetadata> m = storageSpecification.sortFilesByCreatedDate(mapa,false);
+//
+//        for(Map.Entry<String,FileMetadata> e:m.entrySet())
+//        {
+//            System.out.println(e.getKey()+" "+e.getValue().getName()+" "+e.getValue().getCreatedDate());
+//        }
 
-        for(Map.Entry<String,FileMetadata> e:m.entrySet())
-        {
-            System.out.println(e.getKey()+" "+e.getValue().getName()+" "+e.getValue().getCreatedDate());
-        }
-
+        storageSpecification.renameFileOrDirectory("Test1.txt","zarko.txt");
     }
 
 
@@ -288,7 +286,8 @@ public class GoogleDriveStorage extends StorageSpecification{
 
     ///TODO -> IMPLEMENTATION OF ABSTRACT CLASSES
 
-    //--------------------------------------------------------Prvi deo----------------------------------------------------------
+    //---------------------------------------------------Prvi deo----------------------------------------------------------------
+
     @Override
     void createRootFolder() {
         try {
@@ -345,6 +344,7 @@ public class GoogleDriveStorage extends StorageSpecification{
 
 
     //---------------------------------------------------Drugi deo----------------------------------------------------------------
+
     @Override
     boolean createFolderOnSpecifiedPath(String path,String name) {
         try{
@@ -402,7 +402,6 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         return false;
     }
-
 
     @Override
     void deleteFileOrDirectory(String path) {
@@ -473,15 +472,39 @@ public class GoogleDriveStorage extends StorageSpecification{
     void renameFileOrDirectory(String path, String nameAfter) {
         try
         {
-//            String id=retFolderIDForPath(path,super.getRootFolderPath());
-//            if(id==null)
-//            {
-//                return;
-//            }
-//            File file = new File();
-//            file.setName(nameAfter);
-//             service.files().patch(fileId, file);
-//            patchRequest.setFields("title");
+            String id=retFolderIDForPath(path,super.getRootFolderPath());
+            if(id==null)
+            {
+                return;
+            }
+            String[] str=path.split("/+");
+            String newPath="";
+
+            for(int i=0;i<str.length-1;i++)
+            {
+                newPath+=str[i];
+                if(i!=str.length-2)
+                    newPath+="/";
+            }
+            String parentId;
+            if(newPath.equals(""))
+            {
+                parentId=retRootFolderID(super.getRootFolderPath());
+            }
+            else
+            {
+                parentId=retFolderIDForPath(newPath,super.getRootFolderPath());
+            }
+            if(parentId==null)
+            {
+                return;
+            }
+            File copiedFile = new File();
+            copiedFile.setName(nameAfter);
+            if(!parentId.equals(""))
+                copiedFile.setParents(Collections.singletonList(parentId));
+            service.files().copy(id,copiedFile).execute();
+            service.files().delete(id).execute();
 
         }
         catch (Exception e)
@@ -491,6 +514,7 @@ public class GoogleDriveStorage extends StorageSpecification{
     }
 
 
+    //----------------------------------------------------Treci deo-------------------------------------------------------
 
     @Override
     Map<String, FileMetadata> filesFromDirectory(String path) {
