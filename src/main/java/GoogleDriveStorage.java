@@ -208,7 +208,7 @@ public class GoogleDriveStorage extends StorageSpecification{
 //        storageSpecification.renameFileOrDirectory("Root123/unnamed.jpg","slika.jpg");
         GoogleDriveStorage googleDriveStorage=new GoogleDriveStorage();
         //System.out.println(googleDriveStorage.retFolderIDForPath("Root123",""));
-        storageSpecification.allFilesFromDirectoryAndSubdirectory("");
+        storageSpecification.allFilesFromDirectoryAndSubdirectory("Root123asd");
     }
 
 
@@ -248,7 +248,7 @@ public class GoogleDriveStorage extends StorageSpecification{
             fileMetadata.setParents(Collections.singletonList(folder.getId()));
 
             FileContent mediaContent = new FileContent("text/txt", f);
-            File file = service.files().create(fileMetadata,mediaContent)
+            service.files().create(fileMetadata,mediaContent)
                     .setFields("id, parents")
                     .execute();
 
@@ -287,7 +287,7 @@ public class GoogleDriveStorage extends StorageSpecification{
             if(!id.equals(""))
                 folderMetadata.setParents(Collections.singletonList(id));
 
-            File folder = service.files().create(folderMetadata)
+            service.files().create(folderMetadata)
                     .setFields("id")
                     .execute();
             return true;
@@ -318,7 +318,7 @@ public class GoogleDriveStorage extends StorageSpecification{
                 fileMetadata.setName(file.getName());
                 fileMetadata.setParents(Collections.singletonList(id));
 
-                File f = service.files().create(fileMetadata)
+                service.files().create(fileMetadata)
                         .setFields("id, parents")
                         .execute();
             }
@@ -523,15 +523,17 @@ public class GoogleDriveStorage extends StorageSpecification{
                 List<File> newFolderList=new ArrayList<>();
                 for (File f : folderList) {
 
+                    System.out.println("\n----------------------"+f.getName()+"-----------------------\n");
                     //Ucitavanje podataka o fajlovima u trenutnom folderu
-                    FileList filesFromFolder = service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed=false and parents in ' " + f.getId() + "'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
+                    FileList filesFromFolder = service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed=false and parents in '" + f.getId() + "'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
                     for (File f1 : filesFromFolder.getFiles()) {
+                        System.out.println(f1.getSize()+" "+f1.getName()+" "+f1.getFileExtension());
                         FileMetadata fileMetadata = new FileMetadata(f1.getSize(), f1.getCreatedTime().toString(), f1.getFileExtension(), f1.getName());
                         hashMap.put(f1.getName(), fileMetadata);
                     }
 
                     //Ucitavanje novih podfoldera za citanje
-                    FileList foldersFromFolder = service.files().list().setQ("mimeType = 'application/vnd.google-apps.folder' and trashed=false and parents in ' " + f.getId() + "'").execute();
+                    FileList foldersFromFolder = service.files().list().setQ("mimeType = 'application/vnd.google-apps.folder' and trashed=false and parents in '" + f.getId() + "'").execute();
                     newFolderList.addAll(foldersFromFolder.getFiles());
                 }
                 folderList=newFolderList;
@@ -545,6 +547,8 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
 
     }
+
+
 
     @Override
     HashMap<String, String> filesFromDirectoryExt(String s, List<String> list) {
