@@ -181,6 +181,71 @@ public class GoogleDriveStorage extends StorageSpecification{
         return null;
     }
 
+    ArrayList<String> visited=new ArrayList<>();
+    String permPath;
+    void retPathToFolder(String searchId,String name,String parentId,String path)
+    {
+        try
+        {
+            if(service==null)
+            {
+                service=getDriveService();
+            }
+            visited.add(parentId);
+
+            FileList files;
+            FileList folders;
+            if(!parentId.equals("")) {
+                files = service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in '" + parentId + "'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
+                folders =service.files().list().setQ("mimeType = 'application/vnd.google-apps.folder' and trashed = false  and parents in '" + parentId + "'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
+            }
+            else {
+                files = service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in 'root'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
+                folders=service.files().list().setQ("mimeType = 'application/vnd.google-apps.folder' and trashed = false  and parents in 'root'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
+            }
+
+            for(File f:files.getFiles())
+            {
+                //System.out.println(f.getName()+" "+f.getId());
+                if(f.getId().equals(searchId))
+                {
+                    path+="/"+f.getName();
+                    permPath=path;
+                    return;
+                }
+            }
+
+            Iterator<File> f=folders.getFiles().listIterator();
+            while(f.hasNext())
+            {
+                File currFile=f.next();
+                if(currFile.getId().equals(searchId))
+                {
+                    if(path.equals(""))
+                        path+=currFile.getName();
+                    else
+                        path+="/"+currFile.getName();
+                    permPath=path;
+                    return;
+                }
+                if(!visited.contains(currFile.getId()) && permPath==null)
+                {
+                    if(path.equals(""))
+                        retPathToFolder(searchId,name,currFile.getId(),path+currFile.getName());
+                    else
+                        retPathToFolder(searchId,name,currFile.getId(),path+"/"+currFile.getName());
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+
+
     void printContentOfFolders()
     {
         try {
@@ -278,7 +343,36 @@ public class GoogleDriveStorage extends StorageSpecification{
 //            System.out.println(e.getKey()+" "+e.getValue().getName()+" "+e.getValue().getCreatedDate());
 //        }
 
-        storageSpecification.renameFileOrDirectory("Test1.txt","zarko.txt");
+        //storageSpecification.renameFileOrDirectory("Test1.txt","zarko.txt");
+//        googleDriveStorage.retPathToFolder("19-vlQBk6p0OylsBNg1xoVuPsfbE-BIsD","Zarko","","");
+//        System.out.println(googleDriveStorage.permPath);
+//        googleDriveStorage.permPath=null;
+//        googleDriveStorage.visited=new ArrayList<>();
+//        googleDriveStorage.retPathToFolder("14WPzQzmzDyH_-H2q5pT0vbrCffGvPYAU","Root123","","");
+//        System.out.println(googleDriveStorage.permPath);
+//        googleDriveStorage.permPath=null;
+//        googleDriveStorage.visited=new ArrayList<>();
+//        googleDriveStorage.retPathToFolder("1_BuhWL0TuiBDzMpxPwwAOyPpHRzLFXGF3FGxqBr0fL4","Test1","","");
+//        System.out.println(googleDriveStorage.permPath);
+//        googleDriveStorage.permPath=null;
+//        googleDriveStorage.visited=new ArrayList<>();
+//        googleDriveStorage.retPathToFolder("1EUbEGj6rzTfVr0d7Rtane7VnML14U8Gy","unnamed.jpg","","");
+//        System.out.println(googleDriveStorage.permPath);
+//        googleDriveStorage.permPath=null;
+//        googleDriveStorage.visited=new ArrayList<>();
+//        googleDriveStorage.retPathToFolder("1g4x0B6i7HikjylGYilDBwkJPfuHosWwD","A.docx","","");
+//        System.out.println(googleDriveStorage.permPath);
+
+//        Map<String,FileMetadata> m=storageSpecification.allFilesFromDirectoryAndSubdirectory("Root123");
+//        for(Map.Entry<String,FileMetadata> e:m.entrySet())
+//        {
+//            System.out.println(e.getKey()+" "+e.getValue().getName()+" "+e.getValue().getAbsolutePath());
+//        }
+
+
+
+
+
     }
 
 
@@ -288,12 +382,72 @@ public class GoogleDriveStorage extends StorageSpecification{
 
     //---------------------------------------------------Prvi deo----------------------------------------------------------------
 
+    boolean isThereAlreadyStorage()
+    {
+        try
+        {
+            if(service==null)
+            {
+                service = getDriveService();
+            }
+            String rootFolderPath=super.getRootFolderPath();
+            if(rootFolderPath.equals(""))
+            {
+                FileList fileList=service.files().list().setQ("trashed=false and parents in 'root'").execute();
+                for(File f:fileList.getFiles())
+                {
+                    if(f.equals("Skladiste"))
+                    {
+                        FileList insideFileList=service.files().list().setQ("trashed=false and parents in '"+f.getId()+"'").execute();
+                        for(File f1:insideFileList.getFiles())
+                        {
+                            if(f1.getName().equals("configuratio.txt"))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                String id=retRootFolderID(rootFolderPath);
+                FileList fileList=service.files().list().setQ("trashed=false and parents in '"+id+"'").execute();
+                for(File f:fileList.getFiles())
+                {
+                    if(f.equals("Skladiste"))
+                    {
+                        FileList insideFileList=service.files().list().setQ("trashed=false and parents in '"+f.getId()+"'").execute();
+                        for(File f1:insideFileList.getFiles())
+                        {
+                            if(f1.getName().equals("configuratio.txt"))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     @Override
     void createRootFolder() {
         try {
             if(service==null)
             {
                 service = getDriveService();
+            }
+            if(!isThereAlreadyStorage())
+            {
+                return;
             }
             String rootFolderPath=super.getRootFolderPath();
             File folderMetadata = new File();
@@ -541,8 +695,11 @@ public class GoogleDriveStorage extends StorageSpecification{
             {
                 java.util.Date createdDate=new java.util.Date(f.getCreatedTime().getValue());
                 Date modifiedDate=new Date(f.getModifiedTime().getValue());
-                FileMetadata fileMetadata=new FileMetadata(f.getSize(),createdDate,modifiedDate,f.getFileExtension(),f.getName());
+                retPathToFolder(f.getId(),f.getName(),"","");
+                FileMetadata fileMetadata=new FileMetadata(permPath,f.getSize(),createdDate,modifiedDate,f.getFileExtension(),f.getName());
                 hashMap.put(f.getName(),fileMetadata);
+                permPath=null;
+                visited=new ArrayList<>();
             }
 
             return hashMap;
@@ -578,14 +735,17 @@ public class GoogleDriveStorage extends StorageSpecification{
 
             for(File f:folderList.getFiles())
             {
-                FileList files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false and parents in '"+f.getId()+"'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
+                FileList files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false and parents in '"+f.getId()+"'").setFields("files(id, name, size,createdTime,fileExtension,modifiedTime)").execute();
                 //System.out.println(f.getName()+"-----------------------");
                 for(File f1:files.getFiles())
                 {
                     java.util.Date createdDate=new java.util.Date(f1.getCreatedTime().getValue());
                     Date modifiedDate=new Date(f1.getModifiedTime().getValue());
-                    FileMetadata fileMetadata=new FileMetadata(f1.getSize(),createdDate,modifiedDate,f1.getFileExtension(),f1.getName());
+                    retPathToFolder(f1.getId(),f1.getName(),"","");
+                    FileMetadata fileMetadata=new FileMetadata(permPath,f1.getSize(),createdDate,modifiedDate,f1.getFileExtension(),f1.getName());
                     hashMap.put(f1.getName(),fileMetadata);
+                    permPath=null;
+                    visited=new ArrayList<>();
                 }
             }
             return hashMap;
@@ -625,12 +785,15 @@ public class GoogleDriveStorage extends StorageSpecification{
 
                     System.out.println("\n----------------------"+f.getName()+"-----------------------\n");
                     //Ucitavanje podataka o fajlovima u trenutnom folderu
-                    FileList filesFromFolder = service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed=false and parents in '" + f.getId() + "'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
+                    FileList filesFromFolder = service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed=false and parents in '" + f.getId() + "'").setFields("files(id, name, size,createdTime,fileExtension,modifiedTime)").execute();
                     for (File f1 : filesFromFolder.getFiles()) {
                         java.util.Date createdDate=new java.util.Date(f1.getCreatedTime().getValue());
                         Date modifiedDate=new Date(f1.getModifiedTime().getValue());
-                        FileMetadata fileMetadata=new FileMetadata(f1.getSize(),createdDate,modifiedDate,f1.getFileExtension(),f1.getName());
+                        retPathToFolder(f1.getId(),f1.getName(),"","");
+                        FileMetadata fileMetadata=new FileMetadata(permPath,f1.getSize(),createdDate,modifiedDate,f1.getFileExtension(),f1.getName());
                         hashMap.put(f1.getName(),fileMetadata);
+                        permPath=null;
+                        visited=new ArrayList<>();
                     }
 
                     //Ucitavanje novih podfoldera za citanje
@@ -837,12 +1000,12 @@ public class GoogleDriveStorage extends StorageSpecification{
                 for(String folderId:parentFolderList)
                 {
                     if(!folderId.equals("")) {
-                        files = service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in '" + folderId + "'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
-                        folders =service.files().list().setQ("mimeType = 'application/vnd.google-apps.folder' and trashed = false  and parents in '" + folderId + "'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
+                        files = service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in '" + folderId + "'").setFields("files(id, name, size,createdTime,fileExtension,modifiedTime)").execute();
+                        folders =service.files().list().setQ("mimeType = 'application/vnd.google-apps.folder' and trashed = false  and parents in '" + folderId + "'").setFields("files(id, name, size,createdTime,fileExtension,modifiedTime)").execute();
                     }
                     else {
-                        files = service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in 'root'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
-                        folders=service.files().list().setQ("mimeType = 'application/vnd.google-apps.folder' and trashed = false  and parents in 'root'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
+                        files = service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in 'root'").setFields("files(id, name, size,createdTime,fileExtension,modifiedTime)").execute();
+                        folders=service.files().list().setQ("mimeType = 'application/vnd.google-apps.folder' and trashed = false  and parents in 'root'").setFields("files(id, name, size,createdTime,fileExtension,modifiedTime)").execute();
                     }
 
                     for(File f:files.getFiles())
@@ -977,16 +1140,16 @@ public class GoogleDriveStorage extends StorageSpecification{
             Map<String, FileMetadata> map=new LinkedHashMap<>();
             FileList files;
             if(!id.equals(""))
-                files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in '"+id+"'") .setFields("files(id, name, size,createdTime,fileExtension)").execute();
+                files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in '"+id+"'") .setFields("files(id, name, size,createdTime,fileExtension,modifiedTime)").execute();
             else
-                files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in 'root'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
+                files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in 'root'").setFields("files(id, name, size,createdTime,fileExtension,modifiedTime)").execute();
 
             for(File f:files.getFiles())
             {
                 java.util.Date fileDate=new java.util.Date(f.getCreatedTime().getValue());
                 Date modifiedDate=new Date(f.getModifiedTime().getValue());
                 if(fileDate.after(fromDate) && fileDate.before(toDate)) {
-                    FileMetadata fileMetadata = new FileMetadata(f.getSize(), fileDate,modifiedDate, f.getFileExtension(), f.getName());
+                    FileMetadata fileMetadata = new FileMetadata(null,f.getSize(), fileDate,modifiedDate, f.getFileExtension(), f.getName());
                     map.put(f.getName(), fileMetadata);
                 }
             }
@@ -1011,16 +1174,16 @@ public class GoogleDriveStorage extends StorageSpecification{
             Map<String, FileMetadata> map=new LinkedHashMap<>();
             FileList files;
             if(!id.equals(""))
-                files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in '"+id+"'") .setFields("files(id, name, size,createdTime,fileExtension)").execute();
+                files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in '"+id+"'") .setFields("files(id, name, size,createdTime,fileExtension,modifiedTime)").execute();
             else
-                files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in 'root'").setFields("files(id, name, size,createdTime,fileExtension)").execute();
+                files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in 'root'").setFields("files(id, name, size,createdTime,fileExtension,modifiedTime)").execute();
 
             for(File f:files.getFiles())
             {
                 java.util.Date fileDate=new java.util.Date(f.getCreatedTime().getValue());
                 Date modifiedDate=new Date(f.getModifiedTime().getValue());
                 if(modifiedDate.after(fromDate) && modifiedDate.before(toDate)) {
-                    FileMetadata fileMetadata = new FileMetadata(f.getSize(), fileDate,modifiedDate, f.getFileExtension(), f.getName());
+                    FileMetadata fileMetadata = new FileMetadata(null,f.getSize(), fileDate,modifiedDate, f.getFileExtension(), f.getName());
                     map.put(f.getName(), fileMetadata);
                 }
             }
