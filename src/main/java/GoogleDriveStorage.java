@@ -600,13 +600,13 @@ public class GoogleDriveStorage extends StorageSpecification{
     }
 
     @Override
-    void downloadFileOrDirectory(String pathFrom, String pathTo) {
+    boolean downloadFileOrDirectory(String pathFrom, String pathTo) {
         try
         {
             String id=retFolderIDForPath(pathFrom,super.getRootFolderPath());
             if(id==null)
             {
-                return;
+                return false;
             }
             File file=service.files().get(id).execute();
             java.io.File f=new java.io.File(pathTo+"\\"+file.getName());
@@ -620,6 +620,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         {
             e.printStackTrace();
         }
+        return true;
     }
 
     @Override
@@ -929,7 +930,7 @@ public class GoogleDriveStorage extends StorageSpecification{
 
 
     @Override
-    String doesDiretoryContainsFiles(String pathToFolder,List<String> namesOfFiles) {
+    String doesDirectoryContainFiles(String pathToFolder,List<String> namesOfFiles) {
         try
         {
             String id=retFolderIDForPath(pathToFolder,super.getRootFolderPath());
