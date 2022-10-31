@@ -12,9 +12,11 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
+import com.google.common.io.Files;
 
 
 import javax.sound.midi.MetaEventListener;
+import javax.swing.*;
 import java.io.*;
 import java.util.*;
 
@@ -274,115 +276,27 @@ public class GoogleDriveStorage extends StorageSpecification{
     ///TODO -> MAIN
 
     public static void main(String[] args) throws IOException {
-        //GoogleDriveStorage googleDriveStorage=new GoogleDriveStorage();
         StorageSpecification storageSpecification=new GoogleDriveStorage();
-        //googleDriveStorage.printContentOfFolders();
-        /*System.out.println("Dobrodosli u nas program!\nOdaberite opciju:\n1.Lokalnog skladista\n2.Google Drive skladista");
-        Scanner sc=new Scanner(System.in);
-        String input=sc.nextLine();
-
-        System.out.println("Da li zelite da uneste putanju na kojoj ce se nalaziti skladiste ili birate korenski folder:\n1.Korenski\n2.Unos putanje");
-        input=sc.nextLine();
-        String path="";
-        if(input.equals("2"))
-        {
-            while(!storageSpecification.setRootFolderPathImplementation(sc.nextLine())){
-                System.out.println("Unesi ponovo:");
-            }
-            System.out.println("Odabrana putanja je ok");
-        }
-
-        System.out.println("Da li zelite da zadate velicinu skladista:\n1.Ne\n2.Da");
-        input=sc.nextLine();
-        if(input.equals("2"))
-        {
-            input=sc.nextLine();
-            storageSpecification.setConfigurationSizeOfStorage(Integer.parseInt(input));
-        }
-
-        System.out.println("Da li zelite da zadate broj fajlova u skladistu:\n1.Ne\n2.Da");
-        input=sc.nextLine();
-        if(input.equals("2"))
-        {
-            input=sc.nextLine();
-            storageSpecification.setConfigurationNumberOfFiles(Integer.parseInt(input));
-        }
-
-        System.out.println("Da li zelite da zadate dozvoljene ekstenzije:\n1.Da\n2.Ne");
-        input=sc.nextLine();
-        if(input.equals("2"))
-        {
-            System.out.println("Ekstencije zadajte sa razmakom i u obliku .ekstenzija -> primer: (.exe .pdf)");
-            input=sc.nextLine();
-            storageSpecification.setConfigurationNumberOfFiles(Integer.parseInt(input));
-        }*/
-//        List<String> list=new ArrayList<>();
-//        list.add("C:\\xampp\\htdocs\\ZadatakSubota");
-//        list.add("C:\\Users\\mega\\Radna površina\\Test1.txt");
-//        list.add("C:\\Users\\mega\\Radna površina\\ProjekatSK\\Test2.txt");
-//        storageSpecification.putFileOnSpecifiedPath(list,"Root123");
-//        storageSpecification.createFolderOnSpecifiedPath("Root123/Zarko","Zarko123");
-//        googleDriveStorage.moveFileFromDirectoryToAnother("z.txt","Root123/Zarko/Zarko123","Root123/Zarko/Radenkovic");
-
-//        storageSpecification.deleteFileOrDirectory("Root123/Zarko/Skladiste123");
-
-//        storageSpecification.moveFileFromDirectoryToAnother("Root123/Test1.txt","Root123/Zarko");
-
-//        storageSpecification.downloadFileOrDirectory("Root123/unnamed.jpg","C:\\\\Users\\\\mega\\\\Radna površina");
-
-//        storageSpecification.renameFileOrDirectory("Root123/unnamed.jpg","slika.jpg");
         GoogleDriveStorage googleDriveStorage=new GoogleDriveStorage();
-        //System.out.println(googleDriveStorage.retFolderIDForPath("Root123",""));
-        //storageSpecification.allFilesFromDirectoryAndSubdirectory("Root123asd");
-//        Map<String,FileMetadata> mapa =storageSpecification.filesFromDirectory("Root123/Zarko/Zarko123");
-//        System.out.println("--------------------------------------------------------------------");
-//        Map<String,FileMetadata> m = storageSpecification.sortFilesByCreatedDate(mapa,false);
-//
-//        for(Map.Entry<String,FileMetadata> e:m.entrySet())
-//        {
-//            System.out.println(e.getKey()+" "+e.getValue().getName()+" "+e.getValue().getCreatedDate());
-//        }
 
-        //storageSpecification.renameFileOrDirectory("Test1.txt","zarko.txt");
-//        googleDriveStorage.retPathToFolder("19-vlQBk6p0OylsBNg1xoVuPsfbE-BIsD","Zarko","","");
-//        System.out.println(googleDriveStorage.permPath);
-//        googleDriveStorage.permPath=null;
-//        googleDriveStorage.visited=new ArrayList<>();
-//        googleDriveStorage.retPathToFolder("14WPzQzmzDyH_-H2q5pT0vbrCffGvPYAU","Root123","","");
-//        System.out.println(googleDriveStorage.permPath);
-//        googleDriveStorage.permPath=null;
-//        googleDriveStorage.visited=new ArrayList<>();
-//        googleDriveStorage.retPathToFolder("1_BuhWL0TuiBDzMpxPwwAOyPpHRzLFXGF3FGxqBr0fL4","Test1","","");
-//        System.out.println(googleDriveStorage.permPath);
-//        googleDriveStorage.permPath=null;
-//        googleDriveStorage.visited=new ArrayList<>();
-//        googleDriveStorage.retPathToFolder("1EUbEGj6rzTfVr0d7Rtane7VnML14U8Gy","unnamed.jpg","","");
-//        System.out.println(googleDriveStorage.permPath);
-//        googleDriveStorage.permPath=null;
-//        googleDriveStorage.visited=new ArrayList<>();
-//        googleDriveStorage.retPathToFolder("1g4x0B6i7HikjylGYilDBwkJPfuHosWwD","A.docx","","");
-//        System.out.println(googleDriveStorage.permPath);
-
-//        Map<String,FileMetadata> m=storageSpecification.allFilesFromDirectoryAndSubdirectory("Root123");
-//        for(Map.Entry<String,FileMetadata> e:m.entrySet())
-//        {
-//            System.out.println(e.getKey()+" "+e.getValue().getName()+" "+e.getValue().getAbsolutePath());
-//        }
-
-
-
-
+        storageSpecification.setRootFolderPathInitialization("Root123/Zarko");
+        storageSpecification.getConfiguration().setSize(123456);
+        List<String> list=new ArrayList<>();
+//        list.add(".exe");
+//        list.add(".pdf");
+//        storageSpecification.getConfiguration().setAllowedExtensions(list);
+        storageSpecification.createRootFolder();
+        System.out.println(storageSpecification.getConfiguration().getSize());
+        System.out.println(storageSpecification.getConfiguration().getAllowedExtensions());
 
     }
-
-
 
 
     ///TODO -> IMPLEMENTATION OF ABSTRACT CLASSES
 
     //---------------------------------------------------Prvi deo----------------------------------------------------------------
 
-    boolean isThereAlreadyStorage()
+    String isThereAlreadyStorage()  /// TEST OK
     {
         try
         {
@@ -393,17 +307,21 @@ public class GoogleDriveStorage extends StorageSpecification{
             String rootFolderPath=super.getRootFolderPath();
             if(rootFolderPath.equals(""))
             {
+
                 FileList fileList=service.files().list().setQ("trashed=false and parents in 'root'").execute();
                 for(File f:fileList.getFiles())
                 {
-                    if(f.equals("Skladiste"))
+                    if(f.getName().equals("Skladiste"))
                     {
+
                         FileList insideFileList=service.files().list().setQ("trashed=false and parents in '"+f.getId()+"'").execute();
                         for(File f1:insideFileList.getFiles())
                         {
-                            if(f1.getName().equals("configuratio.txt"))
+
+                            if(f1.getName().equals("configuration.txt"))
                             {
-                                return true;
+
+                                return f1.getId();
                             }
                         }
                     }
@@ -415,26 +333,26 @@ public class GoogleDriveStorage extends StorageSpecification{
                 FileList fileList=service.files().list().setQ("trashed=false and parents in '"+id+"'").execute();
                 for(File f:fileList.getFiles())
                 {
-                    if(f.equals("Skladiste"))
+                    if(f.getName().equals("Skladiste"))
                     {
                         FileList insideFileList=service.files().list().setQ("trashed=false and parents in '"+f.getId()+"'").execute();
                         for(File f1:insideFileList.getFiles())
                         {
-                            if(f1.getName().equals("configuratio.txt"))
+                            if(f1.getName().equals("configuration.txt"))
                             {
-                                return true;
+                                return f1.getId();
                             }
                         }
                     }
                 }
             }
-            return false;
+            return null;
 
         }
         catch (Exception e)
         {
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
 
@@ -445,11 +363,33 @@ public class GoogleDriveStorage extends StorageSpecification{
             {
                 service = getDriveService();
             }
-            if(!isThereAlreadyStorage())
+            String rootFolderPath=super.getRootFolderPath();
+            if(isThereAlreadyStorage()!=null)
             {
+                OutputStream outputStream = new ByteArrayOutputStream();
+                service.files().get(isThereAlreadyStorage()).executeMediaAndDownloadTo(outputStream);
+
+                String[] str= outputStream.toString().split("\n");
+                super.getConfiguration().setSize(Integer.parseInt(str[0]));
+                if(str.length>1) {
+                    List<String> list = Arrays.asList(str[1].split(" ").clone());
+                    if(!list.isEmpty())
+                        super.getConfiguration().setAllowedExtensions(list);
+                }
+                if(str.length>2)
+                {
+                    Map<String ,Integer> map=new HashMap<>();
+                    int i=2;
+                    while(i<str.length)
+                    {
+                        List<String> list1 = Arrays.asList(str[i].split(" ").clone());
+                        map.put(list1.get(0),Integer.parseInt(list1.get(1)));
+                    }
+                    super.getConfiguration().setNumberOfFilesInFolder(map);
+                }
                 return;
             }
-            String rootFolderPath=super.getRootFolderPath();
+
             File folderMetadata = new File();
             folderMetadata.setName("Skladiste");
             folderMetadata.setMimeType("application/vnd.google-apps.folder");
@@ -464,8 +404,7 @@ public class GoogleDriveStorage extends StorageSpecification{
             java.io.File f=new java.io.File("src/main/resources/configuration.txt");
             f.createNewFile();
             FileWriter fileWriter=new FileWriter("src/main/resources/configuration.txt");
-            fileWriter.write(super.getConfiguration().getNumberOfFiles()+"\n"+
-                    super.getConfiguration().getSize()+"\n"+super.getConfiguration().getAllowedExtensions());
+            fileWriter.write(super.getConfiguration().toString());
             fileWriter.close();
 
             File fileMetadata = new File();
@@ -483,7 +422,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         {
             e.printStackTrace();
         }
-    }
+    }   /// TEST OK
 
     @Override
     boolean setRootFolderPathInitialization(String path) {
@@ -494,8 +433,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         super.setRootFolderPath(path);
         return true;
-    }
-
+    } //// TEST OK
 
     //---------------------------------------------------Drugi deo----------------------------------------------------------------
 
@@ -525,6 +463,31 @@ public class GoogleDriveStorage extends StorageSpecification{
         return false;
     }
 
+    private int numberOfFiles(String path)
+    {
+        try{
+            String id=retFolderIDForPath(path,super.getRootFolderPath());
+            FileList fileList=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false and parents in '"+id+"'").execute();
+            return fileList.size();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    private int maxNumberOfFilesInDirectory(String path,Map<String ,Integer> map)
+    {
+        for(Map.Entry<String, Integer> e:map.entrySet())
+        {
+            if(e.getKey().equals(path))
+            {
+                return e.getValue();
+            }
+        }
+        return Integer.MAX_VALUE;
+    }
+
     @Override
     public boolean putFilesOnSpecifiedPath(List<String> listOfFiles, String path) {
         try {
@@ -533,12 +496,24 @@ public class GoogleDriveStorage extends StorageSpecification{
             {
                 return false;
             }
-
+            String idRootFoldera = retRootFolderID(super.getRootFolderPath());
             for(String filePath:listOfFiles)
             {
                 java.io.File file=new java.io.File(filePath);
                 if(!file.exists() || file.isDirectory())
                     continue;
+                if(service.files().get(idRootFoldera).execute().getSize()+file.length()>super.getConfiguration().getSize())
+                {
+                    continue;
+                }
+                if(super.getConfiguration().getAllowedExtensions().contains(Files.getFileExtension(file.getName())))
+                {
+                    continue;
+                }
+                if(numberOfFiles(path)+1>maxNumberOfFilesInDirectory(path,super.getConfiguration().getNumberOfFilesInFolder()))
+                {
+                    continue;
+                }
 
                 File fileMetadata = new File();
                 fileMetadata.setName(file.getName());
@@ -583,6 +558,12 @@ public class GoogleDriveStorage extends StorageSpecification{
             {
                 return false;
             }
+            if(numberOfFiles(pathTo)+1>maxNumberOfFilesInDirectory(pathTo,super.getConfiguration().getNumberOfFilesInFolder()))
+            {
+                return false;
+            }
+
+
             File file=service.files().get(id).execute();
             File copiedFile = new File();
             copiedFile.setName(file.getName());
@@ -814,7 +795,6 @@ public class GoogleDriveStorage extends StorageSpecification{
     }
 
 
-
     @Override
     Map<String, FileMetadata> filesFromDirectoryExt(String path, List<String> list) {
         Map<String,FileMetadata> fileMap = filesFromDirectory(path);
@@ -868,7 +848,6 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         return retFileMap;
     }
-
 
 
     @Override
@@ -925,8 +904,6 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         return retFileMap;
     }
-
-
 
 
     @Override
