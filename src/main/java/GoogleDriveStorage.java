@@ -293,8 +293,10 @@ public class GoogleDriveStorage extends StorageSpecification{
         storageSpecification.getConfiguration().setNumberOfFilesInFolder(map);
         storageSpecification.createRootFolder();
         List<String> list1=new ArrayList<>();
-        list1.add(".docx");
-        System.out.println(storageSpecification.returnStringForOutput(storageSpecification.filesFromDirectorySubstring("","da")));
+        list1.add("asd.txt");
+        list1.add("asd");
+
+        System.out.println(storageSpecification.folderNameByFileName("Test1.txt"));
 
 //        storageSpecification.setRootFolderPathInitialization("Root123");
 //        storageSpecification.createRootFolder();
@@ -796,6 +798,67 @@ public class GoogleDriveStorage extends StorageSpecification{
         return true;
     } ///TEST OK
 
+
+    void renamefile(String childId,String parentId,String name)
+    {
+        try
+        {
+            File copiedFile = new File();
+            copiedFile.setName(name);
+            if(!parentId.equals(""))
+                copiedFile.setParents(Collections.singletonList(parentId));
+            service.files().copy(childId,copiedFile).execute();
+            service.files().delete(childId).execute();
+
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    List<String> copied=new ArrayList<>();
+    void renameWholeFolder(String parentOriginalId,String newParentId)
+    {
+        try
+        {
+            copied.add(parentOriginalId);
+            FileList fileList=service.files().list().setQ("trashed=false and parents in '"+parentOriginalId+"'").execute();
+            for(File file:fileList.getFiles())
+            {
+                if(!file.getMimeType().equals("application/vnd.google-apps.folder"))
+                {
+                    File copiedFile = new File();
+                    copiedFile.setName(file.getName());
+                    if(!newParentId.equals(""))
+                        copiedFile.setParents(Collections.singletonList(newParentId));
+                    service.files().copy(file.getId(),copiedFile).execute();
+                    //service.files().delete(file.getId()).execute();
+                }
+                else
+                {
+                    if(!copied.contains(file.getId()))
+                    {
+                        System.out.println("USAO");
+                        File folderMetadata = new File();
+                        folderMetadata.setName(file.getName());
+                        folderMetadata.setMimeType("application/vnd.google-apps.folder");
+                        if(!newParentId.equals(""))
+                            folderMetadata.setParents(Collections.singletonList(newParentId));
+                        File rootFolder=service.files().create(folderMetadata)
+                                .setFields("id")
+                                .execute();
+                        renameWholeFolder(file.getId(),rootFolder.getId());
+                    }
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     void renameFileOrDirectory(String path, String nameAfter) {
         try
@@ -815,31 +878,38 @@ public class GoogleDriveStorage extends StorageSpecification{
                     newPath+="/";
             }
             String parentId;
-            if(newPath.equals(""))
-            {
-                parentId=retRootFolderID(super.getRootFolderPath());
-            }
-            else
-            {
-                parentId=retFolderIDForPath(newPath,super.getRootFolderPath());
-            }
+            parentId=retFolderIDForPath(newPath,super.getRootFolderPath());
             if(parentId==null)
             {
                 return;
             }
-            File copiedFile = new File();
-            copiedFile.setName(nameAfter);
-            if(!parentId.equals(""))
-                copiedFile.setParents(Collections.singletonList(parentId));
-            service.files().copy(id,copiedFile).execute();
-            service.files().delete(id).execute();
+
+            File f=service.files().get(id).execute();
+            if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
+            {
+                renamefile(f.getId(),parentId,nameAfter);
+            }
+            else
+            {
+                File folderMetadata = new File();
+                folderMetadata.setName(nameAfter);
+                folderMetadata.setMimeType("application/vnd.google-apps.folder");
+                if(!parentId.equals(""))
+                    folderMetadata.setParents(Collections.singletonList(parentId));
+                File rootFolder=service.files().create(folderMetadata)
+                        .setFields("id")
+                        .execute();
+                renameWholeFolder(f.getId(),rootFolder.getId());
+                service.files().delete(f.getId()).execute();
+            }
+
 
         }
         catch (Exception e)
         {
             e.printStackTrace();
         }
-    }
+    } //TEST 50%
 
 
     //----------------------------------------------------Treci deo-------------------------------------------------------
@@ -1273,13 +1343,69 @@ public class GoogleDriveStorage extends StorageSpecification{
     }
 
     @Override
-    Map<String, FileMetadata> returnModifiedFilesFromDate(String s, Date date) {
-        return null;
+    Map<String, FileMetadata> returnModifiedFilesFromDate(String pathToDirectory, Date fromDate) {
+        try {
+            String id=retFolderIDForPath(pathToDirectory,super.getRootFolderPath());  // Ukoliko hoces da testiras, zadaj retFolderIDForPath(path,"")
+            if(id==null)
+            {
+                return null;
+            }
+            Map<String, FileMetadata> map=new LinkedHashMap<>();
+            FileList files;
+            if(!id.equals(""))
+                files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in '"+id+"'") .setFields("files(id, name, size,createdTime,fileExtension,modifiedTime)").execute();
+            else
+                files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in 'root'").setFields("files(id, name, size,createdTime,fileExtension,modifiedTime)").execute();
+
+            for(File f:files.getFiles())
+            {
+                java.util.Date fileDate=new java.util.Date(f.getCreatedTime().getValue());
+                Date modifiedDate=new Date(f.getModifiedTime().getValue());
+                if(modifiedDate.after(fromDate)) {
+                    FileMetadata fileMetadata = new FileMetadata(null,f.getSize(), fileDate,modifiedDate, f.getFileExtension(), f.getName());
+                    map.put(f.getName(), fileMetadata);
+                }
+            }
+            return map;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override
-    Map<String, FileMetadata> returnModifiedFilesBeforeDate(String s, Date date) {
-        return null;
+    Map<String, FileMetadata> returnModifiedFilesBeforeDate(String pathToDirectory, Date toDate) {
+        try {
+            String id=retFolderIDForPath(pathToDirectory,super.getRootFolderPath());  // Ukoliko hoces da testiras, zadaj retFolderIDForPath(path,"")
+            if(id==null)
+            {
+                return null;
+            }
+            Map<String, FileMetadata> map=new LinkedHashMap<>();
+            FileList files;
+            if(!id.equals(""))
+                files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in '"+id+"'") .setFields("files(id, name, size,createdTime,fileExtension,modifiedTime)").execute();
+            else
+                files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in 'root'").setFields("files(id, name, size,createdTime,fileExtension,modifiedTime)").execute();
+
+            for(File f:files.getFiles())
+            {
+                java.util.Date fileDate=new java.util.Date(f.getCreatedTime().getValue());
+                Date modifiedDate=new Date(f.getModifiedTime().getValue());
+                if(modifiedDate.before(toDate)) {
+                    FileMetadata fileMetadata = new FileMetadata(null,f.getSize(), fileDate,modifiedDate, f.getFileExtension(), f.getName());
+                    map.put(f.getName(), fileMetadata);
+                }
+            }
+            return map;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 
