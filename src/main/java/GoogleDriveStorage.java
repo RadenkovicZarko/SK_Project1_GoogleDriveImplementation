@@ -296,7 +296,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         list1.add("asd.txt");
         list1.add("asd");
 
-        System.out.println(storageSpecification.folderNameByFileName("Test1.txt"));
+        storageSpecification.renameFileOrDirectory("asdasd.txt","bcd.txt");
 
 //        storageSpecification.setRootFolderPathInitialization("Root123");
 //        storageSpecification.createRootFolder();
@@ -800,117 +800,21 @@ public class GoogleDriveStorage extends StorageSpecification{
     } ///TEST OK
 
 
-    void renamefile(String childId,String parentId,String name)
-    {
-        try
-        {
-            File copiedFile = new File();
-            copiedFile.setName(name);
-            if(!parentId.equals(""))
-                copiedFile.setParents(Collections.singletonList(parentId));
-            service.files().copy(childId,copiedFile).execute();
-            service.files().delete(childId).execute();
-
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
-    List<String> copied=new ArrayList<>();
-    void renameWholeFolder(String parentOriginalId,String newParentId)
-    {
-        try
-        {
-            copied.add(parentOriginalId);
-            FileList fileList=service.files().list().setQ("trashed=false and parents in '"+parentOriginalId+"'").execute();
-            for(File file:fileList.getFiles())
-            {
-                if(!file.getMimeType().equals("application/vnd.google-apps.folder"))
-                {
-                    File copiedFile = new File();
-                    copiedFile.setName(file.getName());
-                    if(!newParentId.equals(""))
-                        copiedFile.setParents(Collections.singletonList(newParentId));
-                    service.files().copy(file.getId(),copiedFile).execute();
-                    //service.files().delete(file.getId()).execute();
-                }
-                else
-                {
-                    if(!copied.contains(file.getId()))
-                    {
-                        System.out.println("USAO");
-                        File folderMetadata = new File();
-                        folderMetadata.setName(file.getName());
-                        folderMetadata.setMimeType("application/vnd.google-apps.folder");
-                        if(!newParentId.equals(""))
-                            folderMetadata.setParents(Collections.singletonList(newParentId));
-                        File rootFolder=service.files().create(folderMetadata)
-                                .setFields("id")
-                                .execute();
-                        renameWholeFolder(file.getId(),rootFolder.getId());
-                    }
-                }
-            }
-
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
-
     @Override
     void renameFileOrDirectory(String path, String nameAfter) {
-        try
-        {
-            String id=retFolderIDForPath(path,super.getRootFolderPath());
-            if(id==null)
-            {
+        try{
+            String fileId=retFolderIDForPath(path,super.getRootFolderPath());
+            if(fileId==null)
                 return;
-            }
-            String[] str=path.split("/+");
-            String newPath="";
-
-            for(int i=0;i<str.length-1;i++)
-            {
-                newPath+=str[i];
-                if(i!=str.length-2)
-                    newPath+="/";
-            }
-            String parentId;
-            parentId=retFolderIDForPath(newPath,super.getRootFolderPath());
-            if(parentId==null)
-            {
-                return;
-            }
-
-            File f=service.files().get(id).execute();
-            if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
-            {
-                renamefile(f.getId(),parentId,nameAfter);
-            }
-            else
-            {
-                File folderMetadata = new File();
-                folderMetadata.setName(nameAfter);
-                folderMetadata.setMimeType("application/vnd.google-apps.folder");
-                if(!parentId.equals(""))
-                    folderMetadata.setParents(Collections.singletonList(parentId));
-                File rootFolder=service.files().create(folderMetadata)
-                        .setFields("id")
-                        .execute();
-                renameWholeFolder(f.getId(),rootFolder.getId());
-                service.files().delete(f.getId()).execute();
-            }
-
-
+            File file=new File();
+            file.setName(nameAfter);
+            service.files().update(fileId,file).execute();
         }
         catch (Exception e)
         {
             e.printStackTrace();
         }
-    } //TEST 50%
+    }
 
 
     //----------------------------------------------------Treci deo-------------------------------------------------------
