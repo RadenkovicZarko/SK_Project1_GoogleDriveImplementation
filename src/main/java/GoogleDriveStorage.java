@@ -36,6 +36,14 @@ public class GoogleDriveStorage extends StorageSpecification{
     private static final List<String> SCOPES = Arrays.asList(DriveScopes.DRIVE);
 
     static {
+        StorageManager.registerStorage(new GoogleDriveStorage());
+    }
+
+    public GoogleDriveStorage() {
+        super();
+    }
+
+    static {
         try {
             HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         } catch (Throwable t) {
