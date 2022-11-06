@@ -289,7 +289,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         list.add(".docx");
         Map<String,Integer> map=new HashMap<>();
         map.put("Zarko/Zarko123/Radenkovic",2);
-        storageSpecification.getConfiguration().setAllowedExtensions(list);
+        storageSpecification.getConfiguration().setForbiddenExtensions(list);
         storageSpecification.getConfiguration().setNumberOfFilesInFolder(map);
         storageSpecification.createRootFolder();
         List<String> list1=new ArrayList<>();
@@ -384,7 +384,7 @@ public class GoogleDriveStorage extends StorageSpecification{
     }
 
     @Override
-    void createRootFolder() {
+    boolean createRootFolder() {
         try {
             if(service==null)
             {
@@ -402,7 +402,7 @@ public class GoogleDriveStorage extends StorageSpecification{
                 if(str.length>1) {
                     List<String> list = Arrays.asList(str[1].split(" ").clone());
                     if(!list.isEmpty())
-                        super.getConfiguration().setAllowedExtensions(list);
+                        super.getConfiguration().setForbiddenExtensions(list);
                 }
                 if(str.length>2)
                 {
@@ -421,7 +421,7 @@ public class GoogleDriveStorage extends StorageSpecification{
                     super.setRootFolderPath("Skladiste");
                 else
                     super.setRootFolderPath(super.getRootFolderPath()+"/Skladiste");
-                return;
+                return true;
             }
 
             File folderMetadata = new File();
@@ -460,6 +460,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         {
             e.printStackTrace();
         }
+        return true;
     }   /// TEST OK
 
     @Override
@@ -609,7 +610,7 @@ public class GoogleDriveStorage extends StorageSpecification{
                     continue;
                 }
 
-                if(super.getConfiguration().getAllowedExtensions().contains("."+Files.getFileExtension(file.getName())))
+                if(super.getConfiguration().getForbiddenExtensions().contains("."+Files.getFileExtension(file.getName())))
                 {
                     System.out.println("Something went wrong with 4 "+file.getName());
                     continue;
