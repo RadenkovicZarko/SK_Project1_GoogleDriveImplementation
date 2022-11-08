@@ -780,7 +780,7 @@ public class GoogleDriveStorage extends StorageSpecification{
 
     List<String> vis=new ArrayList<>();
 
-    void downloadWholeFolder(String id,String pathTo)
+    void downloadWholeFolder(String id,String pathTo) throws MyException
     {
         try{
             vis.add(id);
@@ -802,11 +802,11 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            throw new MyException("Something went wrong");
         }
     }
 
-    void downloadFile(String fileID,String pathTo,long size)
+    void downloadFile(String fileID,String pathTo,long size) throws MyException
     {
         try
         {
@@ -830,7 +830,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            throw new MyException("Something went wrong");
         }
     }
 
@@ -854,11 +854,11 @@ public class GoogleDriveStorage extends StorageSpecification{
     }
 
     @Override
-    boolean downloadFileOrDirectory(String pathFrom, String pathTo) {
+    void downloadFileOrDirectory(String pathFrom, String pathTo) throws MyException{
         try {
             String id = retFolderIDForPath(pathFrom, super.getRootFolderPath());
             if (id == null) {
-                return false;
+                throw new MyException("Bad path");
             }
             File f = service.files().get(id).execute();
             if (f.getMimeType().equals("application/vnd.google-apps.folder")) {
@@ -885,9 +885,8 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            throw new MyException("Something went wrong");
         }
-        return true;
     } ///TEST OK
 
 
