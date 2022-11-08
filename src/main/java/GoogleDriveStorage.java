@@ -551,7 +551,7 @@ public class GoogleDriveStorage extends StorageSpecification{
     }   /// TEST OK
 
     @Override
-    boolean setRootFolderPathInitialization(String path) throws MyException{
+    void setRootFolderPathInitialization(String path) throws MyException{
 
         try {
             String id = retFolderIDForPath(path, "");
@@ -566,7 +566,6 @@ public class GoogleDriveStorage extends StorageSpecification{
 //        }
         path=retPathString(path,true);
         super.setRootFolderPath(path);
-        return true;
     } //// TEST OK // METODA UNUTAR
 
 
