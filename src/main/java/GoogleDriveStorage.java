@@ -574,12 +574,12 @@ public class GoogleDriveStorage extends StorageSpecification{
     //---------------------------------------------------Drugi deo----------------------------------------------------------------
 
     @Override
-    boolean createFolderOnSpecifiedPath(String path,String name) {
+    void createFolderOnSpecifiedPath(String path,String name) throws MyException{
         try{
             String id=retFolderIDForPath(path,super.getRootFolderPath());  // Ukoliko hoces da testiras, zadaj retFolderIDForPath(path,"")
             if(id==null)
             {
-                return false;
+                throw new MyException("Bad path");
             }
             System.out.println(id);
             File folderMetadata = new File();
@@ -591,13 +591,12 @@ public class GoogleDriveStorage extends StorageSpecification{
             service.files().create(folderMetadata)
                     .setFields("id")
                     .execute();
-            return true;
+            return;
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            throw new MyException("Folder cannot be created at this path");
         }
-        return false;
     } ////TEST OK
 
     private int numberOfFiles(String path)
