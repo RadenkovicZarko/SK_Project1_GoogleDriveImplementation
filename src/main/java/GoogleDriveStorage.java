@@ -673,12 +673,13 @@ public class GoogleDriveStorage extends StorageSpecification{
     }
 
     @Override
-    public boolean putFilesOnSpecifiedPath(List<String> listOfFiles, String path) {
+    public void putFilesOnSpecifiedPath(List<String> listOfFiles, String path) throws MyException{
+        StringBuilder stringBuilder=new StringBuilder();
         try {
             String id=retFolderIDForPath(path,super.getRootFolderPath());  // Ukoliko hoces da testiras, zadaj retFolderIDForPath(path,"")
             if(id==null)
             {
-                return false;
+                throw new MyException("Bad path");
             }
 
             Long sizeOfPathFolder = sizeOfFolder(path);
@@ -688,29 +689,28 @@ public class GoogleDriveStorage extends StorageSpecification{
                 java.io.File file=new java.io.File(filePath);
                 if(!file.exists())
                 {
-                    System.out.println("Something went wrong with 1 "+filePath);
+                    stringBuilder.append("Something went wrong with "+filePath);
                     continue;
                 }
                 if(file.isDirectory())
                 {
-                    System.out.println("Something went wrong with 2 "+file.getName());
+                    stringBuilder.append("This path is folder not for file: "+file.getName());
                     continue;
                 }
                 if(sizeOfPathFolder +FileUtils.sizeOf(file)>super.getConfiguration().getSize())  //Mora rekurzivno da se saberu velicine svih fajlova u folderu
                 {
-                    System.out.println("Something went wrong with 3 "+file.getName());
-                    System.out.println(sizeOfPathFolder+" "+FileUtils.sizeOf(file)+" "+super.getConfiguration().getSize());
+                    stringBuilder.append("There is no space for this file: "+file.getName());
                     continue;
                 }
 
                 if(super.getConfiguration().getForbiddenExtensions().contains("."+Files.getFileExtension(file.getName())))
                 {
-                    System.out.println("Something went wrong with 4 "+file.getName());
+                    stringBuilder.append("This file has forbidden extension: "+file.getName());
                     continue;
                 }
                 if(numberOfFiles(path)+1>maxNumberOfFilesInDirectory(path,super.getConfiguration().getNumberOfFilesInFolder()))
                 {
-                    System.out.println("Something went wrong with 5 "+file.getName());
+                    stringBuilder.append("There is limit for number of file for this folder: "+file.getName());
                     continue;
                 }
 
@@ -722,13 +722,13 @@ public class GoogleDriveStorage extends StorageSpecification{
                         .setFields("id, parents")
                         .execute();
             }
-            return true;
+            return;
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            throw new MyException("Something went wrong");
         }
-        return false;
+
     }////TEST OK
 
     @Override
