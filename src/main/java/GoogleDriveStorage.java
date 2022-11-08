@@ -16,6 +16,7 @@ import com.google.common.io.Files;
 
 
 import javax.sound.midi.MetaEventListener;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.*;
 import java.io.*;
 import java.util.*;
@@ -35,16 +36,13 @@ public class GoogleDriveStorage extends StorageSpecification{
     private static HttpTransport HTTP_TRANSPORT;
     private static final List<String> SCOPES = Arrays.asList(DriveScopes.DRIVE);
 
-    static {
-        StorageManager.registerStorage(new GoogleDriveStorage());
-    }
-
     public GoogleDriveStorage() {
         super();
     }
 
     static {
         try {
+            StorageManager.registerStorage(new GoogleDriveStorage());
             HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         } catch (Throwable t) {
             t.printStackTrace();
@@ -54,13 +52,13 @@ public class GoogleDriveStorage extends StorageSpecification{
 
     public static Credential authorize() throws IOException {
         // Load client secrets.
-        InputStream in = GoogleDriveStorage.class.getResourceAsStream("./client_secret.json");
+        InputStream in = GoogleDriveStorage.class.getResourceAsStream("client_secret.json");
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
         // Build flow and trigger user authorization request.
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(HTTP_TRANSPORT, JSON_FACTORY,
                 clientSecrets, SCOPES).setAccessType("offline").build();
-        Credential credential = new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("anyone");
+        Credential credential = new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
         return credential;
     }
 
@@ -70,6 +68,9 @@ public class GoogleDriveStorage extends StorageSpecification{
                 .setApplicationName(APPLICATION_NAME)
                 .build();
     }
+
+
+
 
     String retPathString(String path,boolean firstLine)
     {
@@ -106,7 +107,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         return null;
     }
 
-    String retRootFolderID(String root)
+    String retRootFolderID(String root) throws MyException
     {
 
         if(root.equals(""))
@@ -146,8 +147,9 @@ public class GoogleDriveStorage extends StorageSpecification{
                     }
 
                     if (newListParentFolders.isEmpty()) {
-                        System.out.println("Losa putanja");
-                        return null;
+                       // System.out.println("Losa putanja");
+                        //return null;
+                        throw new MyException("Bad path");
                     }
                 }
                 listParentFolders=newListParentFolders;
@@ -162,14 +164,15 @@ public class GoogleDriveStorage extends StorageSpecification{
                    if(p.equals(idRootFolder))
                         return p;
                 }
-            return null;
-
+//            return null;
+            throw new MyException("Bad path");
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+//            e.printStackTrace();
+            throw new MyException("Bad path");
         }
-        return null;
+//        return null;
     }
 
 
@@ -179,8 +182,9 @@ public class GoogleDriveStorage extends StorageSpecification{
         root=retPathString(root,false);
         if(path==null || root==null )
         {
-            System.out.println("Losa putanja");
-            return null;
+            //System.out.println("Losa putanja");
+//            return null;
+            throw new MyException("Bad path");
         }
         if(path.equals(""))
         {
@@ -197,16 +201,19 @@ public class GoogleDriveStorage extends StorageSpecification{
 
         String rootPath=retRootFolderID(root);
         if(rootPath==null) {
-            return null;
+//            return null;
+            throw new MyException("Bad path");
         }
         List<String> listParentFolders=new ArrayList<>();
         listParentFolders.add(rootPath);
         try {
             if(service == null)
             {
+                System.out.println("IDEMO");
                 service = getDriveService();
+                System.out.println("IDEMO2345");
             }
-
+            System.out.println("IDEMO1");
             for(String folder:str) {
                 List<String> newListParentFolders = new ArrayList<>();
                 for (String parentFolder : listParentFolders) {
@@ -231,21 +238,26 @@ public class GoogleDriveStorage extends StorageSpecification{
                     }
 
                     if (newListParentFolders.isEmpty()) {
-                        System.out.println("Losa putanja");
-                        return null;
+//                        System.out.println("Losa putanja");
+//                        return null;
+                        System.out.println("USAO2");
+                        throw new MyException("Bad path");
                     }
                 }
+                System.out.println("IDEMO2");
                 listParentFolders=newListParentFolders;
             }
-
+            System.out.println("IDEMO3");
             return listParentFolders.get(listParentFolders.size()-1);
 
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+//            e.printStackTrace();
+            System.out.println("USAO3");
+            throw new MyException("Bad path");
         }
-        return null;
+//        return null;
     }
 
     ArrayList<String> visited=new ArrayList<>();
@@ -398,7 +410,7 @@ public class GoogleDriveStorage extends StorageSpecification{
 
     //---------------------------------------------------Prvi deo---------------------------------------------------------------- RADI
 
-    String isThereAlreadyStorage(String rootFolderPath)  /// TEST OK
+    String isThereAlreadyStorage(String rootFolderPath)  throws MyException/// TEST OK
     {
         try
         {
@@ -446,18 +458,18 @@ public class GoogleDriveStorage extends StorageSpecification{
                     }
                 }
             }
-            return null;
+
+            throw new MyException("Error searhing is there already storage");
 
         }
         catch (Exception e)
         {
-            e.printStackTrace();
-            return null;
+            throw new MyException("Error searhing is there already storage");
         }
     }
 
     @Override
-    boolean createRootFolder() {
+    void createRootFolder() throws MyException{
         try {
             if(service==null)
             {
@@ -466,7 +478,6 @@ public class GoogleDriveStorage extends StorageSpecification{
             String rootFolderPath=retPathString(super.getRootFolderPath(),false);
             if(isThereAlreadyStorage(rootFolderPath)!=null)
             {
-
                 OutputStream outputStream = new ByteArrayOutputStream();
                 service.files().get(isThereAlreadyStorage(rootFolderPath)).executeMediaAndDownloadTo(outputStream);
 
@@ -496,7 +507,7 @@ public class GoogleDriveStorage extends StorageSpecification{
                     super.setRootFolderPath("/Skladiste");
                 else
                     super.setRootFolderPath(super.getRootFolderPath()+"/Skladiste");
-                return true;
+                return;
             }
 
             rootFolderPath=super.getRootFolderPath();
@@ -535,22 +546,31 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            throw new MyException("Error while creating root folder");
         }
-        return true;
     }   /// TEST OK
 
     @Override
-    boolean setRootFolderPathInitialization(String path) {
-        String id=retFolderIDForPath(path,"");
-        if(id == null)
-        {
-            return false;
+    boolean setRootFolderPathInitialization(String path) throws MyException{
+
+        try {
+            String id = retFolderIDForPath(path, "");
         }
+        catch (Exception e)
+        {
+            throw new MyException(e.getMessage());
+        }
+//        if(id == null)
+//        {
+//            return false;
+//        }
         path=retPathString(path,true);
         super.setRootFolderPath(path);
         return true;
-    } //// TEST OK
+    } //// TEST OK // METODA UNUTAR
+
+
+
 
     //---------------------------------------------------Drugi deo----------------------------------------------------------------
 
