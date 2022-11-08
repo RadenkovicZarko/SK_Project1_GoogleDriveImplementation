@@ -749,17 +749,17 @@ public class GoogleDriveStorage extends StorageSpecification{
     }////TEST OK
 
     @Override
-    boolean moveFileFromDirectoryToAnother(String pathFrom, String pathTo) {
+    void moveFileFromDirectoryToAnother(String pathFrom, String pathTo) throws MyException{
         try {
             String id=retFolderIDForPath(pathFrom,super.getRootFolderPath());  // Ukoliko hoces da testiras, zadaj retFolderIDForPath(path,"")
             String id2=retFolderIDForPath(pathTo,super.getRootFolderPath());
             if(id==null || id2==null)
             {
-                return false;
+                throw new MyException("");
             }
             if(numberOfFiles(pathTo)+1>maxNumberOfFilesInDirectory(pathTo,super.getConfiguration().getNumberOfFilesInFolder()))
             {
-                return false;
+                throw new MyException("There is limit for number of file for this folder");
             }
 
 
@@ -769,12 +769,11 @@ public class GoogleDriveStorage extends StorageSpecification{
             copiedFile.setParents(Collections.singletonList(id2));
             service.files().copy(id,copiedFile).execute();
             service.files().delete(id).execute();
-            return true;
+            return;
         }
         catch (Exception e)
         {
-            e.printStackTrace();
-            return false;
+            throw new MyException("Something went wrong");
         }
 
     }///TEST OK
