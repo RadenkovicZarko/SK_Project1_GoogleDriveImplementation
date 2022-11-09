@@ -123,7 +123,7 @@ public class GoogleDriveStorage extends StorageSpecification{
             List<String> listParentFolders=new ArrayList<>();
             listParentFolders.add("");
 
-            for(String folder:str) {
+            for(String folder:str) { // /Zarko/Vlajko/a.txt
                 List<String> newListParentFolders = new ArrayList<>();
                 for (String parentFolder : listParentFolders) {
                     FileList result;
@@ -147,15 +147,11 @@ public class GoogleDriveStorage extends StorageSpecification{
                     }
 
                     if (newListParentFolders.isEmpty()) {
-                       // System.out.println("Losa putanja");
-                        //return null;
                         throw new MyException("Bad path");
                     }
                 }
                 listParentFolders=newListParentFolders;
             }
-
-            //return iz liste slucajni
             if(idRootFolder.equals(""))
                 return listParentFolders.get(listParentFolders.size()-1);
             else
@@ -164,15 +160,12 @@ public class GoogleDriveStorage extends StorageSpecification{
                    if(p.equals(idRootFolder))
                         return p;
                 }
-//            return null;
             throw new MyException("Bad path");
         }
         catch (Exception e)
         {
-//            e.printStackTrace();
             throw new MyException("Bad path");
         }
-//        return null;
     }
 
 
@@ -476,6 +469,7 @@ public class GoogleDriveStorage extends StorageSpecification{
                 service = getDriveService();
             }
             String rootFolderPath=retPathString(super.getRootFolderPath(),false);
+
             if(isThereAlreadyStorage(rootFolderPath)!=null)
             {
                 OutputStream outputStream = new ByteArrayOutputStream();
@@ -815,9 +809,6 @@ public class GoogleDriveStorage extends StorageSpecification{
             {
                 return;
             }
-
-
-
             File file=service.files().get(fileID).execute();
             java.io.File f=new java.io.File(pathTo+"\\"+file.getName());
             OutputStream outputStream = new FileOutputStream(f);
