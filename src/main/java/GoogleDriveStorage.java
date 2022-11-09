@@ -1271,12 +1271,12 @@ public class GoogleDriveStorage extends StorageSpecification{
     }
 
     @Override
-    Map<String,FileMetadata> returnCreatedFilesInDateInterval(String pathToDirectory, Date fromDate, Date toDate) {
+    Map<String,FileMetadata> returnCreatedFilesInDateInterval(String pathToDirectory, Date fromDate, Date toDate) throws MyException{
         try {
             String id=retFolderIDForPath(pathToDirectory,super.getRootFolderPath());  // Ukoliko hoces da testiras, zadaj retFolderIDForPath(path,"")
             if(id==null)
             {
-                return null;
+                throw new MyException("Bad path");
             }
             Map<String, FileMetadata> map=new LinkedHashMap<>();
             FileList files;
@@ -1298,19 +1298,18 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            e.printStackTrace();
-            return null;
+            throw new MyException("Something went wrong");
         }
 
     }
 
     @Override
-    Map<String, FileMetadata> returnModifiedFilesInDateInterval(String pathToDirectory, Date fromDate, Date toDate) {
+    Map<String, FileMetadata> returnModifiedFilesInDateInterval(String pathToDirectory, Date fromDate, Date toDate) throws MyException{
         try {
             String id=retFolderIDForPath(pathToDirectory,super.getRootFolderPath());  // Ukoliko hoces da testiras, zadaj retFolderIDForPath(path,"")
             if(id==null)
             {
-                return null;
+                throw new MyException("Bad path");
             }
             Map<String, FileMetadata> map=new LinkedHashMap<>();
             FileList files;
@@ -1332,18 +1331,17 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            e.printStackTrace();
-            return null;
+            throw new MyException("Something went wrong");
         }
     }
 
     @Override
-    Map<String, FileMetadata> returnModifiedFilesFromDate(String pathToDirectory, Date fromDate) {
+    Map<String, FileMetadata> returnModifiedFilesFromDate(String pathToDirectory, Date fromDate) throws MyException{
         try {
             String id=retFolderIDForPath(pathToDirectory,super.getRootFolderPath());  // Ukoliko hoces da testiras, zadaj retFolderIDForPath(path,"")
             if(id==null)
             {
-                return null;
+                throw new MyException("Bad path");
             }
             Map<String, FileMetadata> map=new LinkedHashMap<>();
             FileList files;
@@ -1365,18 +1363,17 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            e.printStackTrace();
-            return null;
+            throw new MyException("Something went wrong");
         }
     }
 
     @Override
-    Map<String, FileMetadata> returnModifiedFilesBeforeDate(String pathToDirectory, Date toDate) {
+    Map<String, FileMetadata> returnModifiedFilesBeforeDate(String pathToDirectory, Date toDate) throws MyException{
         try {
             String id=retFolderIDForPath(pathToDirectory,super.getRootFolderPath());  // Ukoliko hoces da testiras, zadaj retFolderIDForPath(path,"")
             if(id==null)
             {
-                return null;
+                throw new MyException("Bad path");
             }
             Map<String, FileMetadata> map=new LinkedHashMap<>();
             FileList files;
@@ -1398,8 +1395,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            e.printStackTrace();
-            return null;
+            throw new MyException("Something went wrong");
         }
     }
 
