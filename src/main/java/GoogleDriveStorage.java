@@ -85,7 +85,6 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         if(path.length()>1)
         {
-            //System.out.println(path);
             if(path.charAt(0)=='/')
             {
                 String[] str= path.split("/+");
@@ -161,7 +160,6 @@ public class GoogleDriveStorage extends StorageSpecification{
                         return p;
                 }
 
-//            System.out.println("Ladno je stigao");
             throw new MyException("Bad path");
         }
         catch (Exception e)
@@ -177,7 +175,6 @@ public class GoogleDriveStorage extends StorageSpecification{
         root=retPathString(root,false);
         if(path==null || root==null )
         {
-//            System.out.println("Losa putanja");
 //            return null;
             throw new MyException("Bad path");
         }
@@ -185,8 +182,6 @@ public class GoogleDriveStorage extends StorageSpecification{
         {
             if(!root.equals(""))
             {
-//                System.out.println("Usaooooo");
-//                System.out.println(root);
                 return retRootFolderID(root);
             }
             else
@@ -232,7 +227,6 @@ public class GoogleDriveStorage extends StorageSpecification{
                     }
 
                     if (newListParentFolders.isEmpty()) {
-//                        System.out.println("Losa putanja");
 //                        return null;
                         throw new MyException("Bad path");
                     }
@@ -275,7 +269,6 @@ public class GoogleDriveStorage extends StorageSpecification{
 
             for(File f:files.getFiles())
             {
-                //System.out.println(f.getName()+" "+f.getId());
                 if(f.getId().equals(searchId))
                 {
                     path+="/"+f.getName();
@@ -400,7 +393,6 @@ public class GoogleDriveStorage extends StorageSpecification{
                 service = getDriveService();
             }
             String rootFolderPath=retPathString(super.getRootFolderPath(),false);
-//            System.out.println("Prosao1");
             if(isThereAlreadyStorage(rootFolderPath)!=null)
             {
                 OutputStream outputStream = new ByteArrayOutputStream();
@@ -434,7 +426,6 @@ public class GoogleDriveStorage extends StorageSpecification{
                     super.setRootFolderPath(super.getRootFolderPath()+"/Skladiste");
                 return;
             }
-//            System.out.println("2");
             rootFolderPath=super.getRootFolderPath();
             File folderMetadata = new File();
             folderMetadata.setName("Skladiste");
@@ -906,7 +897,6 @@ public class GoogleDriveStorage extends StorageSpecification{
             for(File f:folderList.getFiles())
             {
                 FileList files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false and parents in '"+f.getId()+"'").setFields("files(id, name, size,createdTime,fileExtension,modifiedTime)").execute();
-                //System.out.println(f.getName()+"-----------------------");
                 for(File f1:files.getFiles())
                 {
                     java.util.Date createdDate=new java.util.Date(f1.getCreatedTime().getValue());
@@ -943,7 +933,6 @@ public class GoogleDriveStorage extends StorageSpecification{
 
             List<File> folderList=new ArrayList<>();
             folderList.add(service.files().get(id).execute());
-            //System.out.println(service.files().get(id).execute().getName());
 
             while(!folderList.isEmpty()) {
                 List<File> newFolderList=new ArrayList<>();
@@ -1423,7 +1412,6 @@ public class GoogleDriveStorage extends StorageSpecification{
                     a=b;
                     b=tmp;
                 }
-                System.out.println(a+" "+b);
                 for(int i=a;i<=b;i++)
                 {
                     File fileMetadata = new File();
