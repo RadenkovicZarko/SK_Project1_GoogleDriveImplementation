@@ -23,7 +23,7 @@ import java.util.*;
 
 import com.google.protobuf.Internal;
 import org.apache.commons.io.FileUtils;
-import sun.rmi.runtime.NewThreadAction;
+
 
 
 public class GoogleDriveStorage extends StorageSpecification{
@@ -322,8 +322,8 @@ public class GoogleDriveStorage extends StorageSpecification{
 
         storageSpecification.setRootFolderPathInitialization(".");
         storageSpecification.createRootFolder();
-        storageSpecification.createFolderOnSpecifiedPath(".","Zarko");
-
+//        storageSpecification.createFolderOnSpecifiedPath(".","Zarko");
+        storageSpecification.mkdirCreateFiles("mkdir abc{101}",".");
 
     }
 
@@ -447,9 +447,9 @@ public class GoogleDriveStorage extends StorageSpecification{
                     .setFields("id")
                     .execute();
 
-            java.io.File f=new java.io.File("src/main/resources/configuration.txt");
+            java.io.File f=new java.io.File("configuration.txt");
             f.createNewFile();
-            FileWriter fileWriter=new FileWriter("src/main/resources/configuration.txt");
+            FileWriter fileWriter=new FileWriter("configuration.txt");
             fileWriter.write(super.getConfiguration().toString());
             fileWriter.close();
 
@@ -1379,9 +1379,83 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
     }
 
-    @Override
-    public void mkdirCreateFiles(String s, String s1) {
+    private static boolean isNumeric(String s)
+    {
+        try
+        {
+            Integer.parseInt(s);
+            return true;
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
 
+    }
+
+    @Override
+    public void mkdirCreateFiles(String input, String path) throws MyException{
+        try {
+            String id=retFolderIDForPath(path,super.getRootFolderPath());
+            if(id==null)
+            {
+                throw new MyException("Bad path");
+            }
+
+            if(!input.contains("{") || !input.contains("}") || !input.contains("mkdir") || !input.contains(" "))
+                throw new MyException("Form of input is not correct");
+
+            String drugiDeo = input.split(" ")[1];
+            String prviDeoNaziva = drugiDeo.split("\\{")[0];
+            String drugiDeoNaziva = drugiDeo.split("}").length > 1 ? drugiDeo.split("}")[1] : "";
+            int prviIndeks = drugiDeo.indexOf("{");
+            int drugiIndeks = drugiDeo.indexOf("}");
+            String[] opseg = drugiDeo.substring(prviIndeks + 1, drugiIndeks).split("-");
+
+            if (opseg.length > 1)
+            {
+                if(!isNumeric(opseg[0]) || !isNumeric(opseg[1])) throw new MyException("Limit is not number");
+                int a=Integer.parseInt(opseg[0]);
+                int b=Integer.parseInt(opseg[1]);
+                if(a>b)
+                {
+                    int tmp=a;
+                    a=b;
+                    b=tmp;
+                }
+                System.out.println(a+" "+b);
+                for(int i=a;i<=b;i++)
+                {
+                    File fileMetadata = new File();
+                    fileMetadata.setName(prviDeoNaziva+i+drugiDeoNaziva);
+                    fileMetadata.setParents(Collections.singletonList(id));
+                    File file=service.files().create(fileMetadata)
+                            .setFields("id, parents")
+                            .execute();
+                }
+
+            }
+            else if(opseg.length==1)
+            {
+                if(!isNumeric(opseg[0])) throw new MyException("Limit is not number");
+
+                File fileMetadata = new File();
+                fileMetadata.setName(prviDeoNaziva+opseg[0]+drugiDeoNaziva);
+                fileMetadata.setParents(Collections.singletonList(id));
+                File file=service.files().create(fileMetadata)
+                        .setFields("id, parents")
+                        .execute();
+            }
+            else
+            {
+                throw new MyException("Limit is not valid");
+            }
+
+        }
+        catch (Exception e)
+        {
+            throw new MyException(e.getMessage());
+        }
     }
 
 
