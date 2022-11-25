@@ -702,11 +702,17 @@ public class GoogleDriveStorage extends StorageSpecification{
                 throw new MyException("Not good path");
             }
 
+            if (!id.isEmpty())
+            {
+                File f=service.files().get(id).execute();
+                if(f.getMimeType().equals("application/vnd.google-apps.folder"))
+                    throw new MyException(pathFrom+" Is not file");
+            }
             if (!id2.isEmpty())
             {
                 File f=service.files().get(id2).execute();
                 if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
-                    throw new MyException("Is not folder");
+                    throw new MyException(pathTo+" Is not folder");
             }
 
 
