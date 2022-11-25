@@ -316,7 +316,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         storageSpecification.setRootFolderPathInitialization(".");
         storageSpecification.createRootFolder();
 //        storageSpecification.createFolderOnSpecifiedPath(".","Zarko");
-        storageSpecification.mkdirCreateFiles("mkdir abc{101}",".");
+        storageSpecification.mkdirCreateFiles("mkdir abc{101}","/configuration.txt");
 
     }
 
@@ -1321,6 +1321,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         try{
             String id=retFolderIDForPath("",super.getRootFolderPath());
             FileList files;
+
             if(!id.equals(""))
                 files=service.files().list().setQ("mimeType != 'application/vnd.google-apps.folder' and trashed = false  and parents in '"+id+"'") .setFields("files(id, name, size,createdTime,fileExtension,modifiedTime)").execute();
             else
@@ -1391,9 +1392,23 @@ public class GoogleDriveStorage extends StorageSpecification{
                 throw new MyException("Bad path");
             }
 
-            if(!input.contains("{") || !input.contains("}") || !input.contains("mkdir") || !input.contains(" "))
-                throw new MyException("Form of input is not correct");
+            File f=service.files().get(id).execute();
+            if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
+                throw new MyException("Is not folder");
 
+            if(!input.contains("{") || !input.contains("}") || !input.contains("mkdir") || !input.contains(" "))
+                throw new MyException("Input format invalid.");
+
+            int countOpen=0;
+            int countClose=0;
+            for(Character ch:input.toCharArray())
+            {
+                if(ch=='{')countOpen++;
+                if(ch=='}')countClose--;
+            }
+
+            if(countClose!=1 || countOpen!=1)
+                throw new MyException("Input format invalid.");
             String drugiDeo = input.split(" ")[1];
             String prviDeoNaziva = drugiDeo.split("\\{")[0];
             String drugiDeoNaziva = drugiDeo.split("}").length > 1 ? drugiDeo.split("}")[1] : "";
@@ -1436,7 +1451,7 @@ public class GoogleDriveStorage extends StorageSpecification{
             }
             else
             {
-                throw new MyException("Limit is not valid");
+                throw new MyException("Input format invalid.");
             }
 
         }
