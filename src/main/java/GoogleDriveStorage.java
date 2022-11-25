@@ -23,7 +23,7 @@ import java.util.*;
 
 import com.google.protobuf.Internal;
 import org.apache.commons.io.FileUtils;
-
+import sun.rmi.runtime.NewThreadAction;
 
 
 public class GoogleDriveStorage extends StorageSpecification{
@@ -611,34 +611,41 @@ public class GoogleDriveStorage extends StorageSpecification{
 
             for(String filePath:listOfFiles)
             {
-                java.io.File file=new java.io.File(filePath);
+                try {
+                    java.io.File file1 = new java.io.File(filePath);
+                }
+                catch (Exception e)
+                {
+                    stringBuilder.append("Bad path for file:"+filePath);
+                    continue;
+                }
+                java.io.File file = new java.io.File(filePath);
                 if(!file.exists())
                 {
-                    stringBuilder.append("Something went wrong with "+filePath);
+                    stringBuilder.append("Something went wrong with ").append(filePath);
                     continue;
                 }
                 if(file.isDirectory())
                 {
-                    stringBuilder.append("This path is folder not for file: "+file.getName());
+                    stringBuilder.append("This path is folder not for file: ").append(file.getName());
                     continue;
                 }
                 if(sizeOfPathFolder +FileUtils.sizeOf(file)>super.getConfiguration().getSize())  //Mora rekurzivno da se saberu velicine svih fajlova u folderu
                 {
-                    stringBuilder.append("There is no space for this file: "+file.getName());
+                    stringBuilder.append("There is no space for this file: ").append(file.getName());
                     continue;
                 }
 
                 if(super.getConfiguration().getForbiddenExtensions().contains("."+Files.getFileExtension(file.getName())))
                 {
-                    stringBuilder.append("This file has forbidden extension: "+file.getName());
+                    stringBuilder.append("This file has forbidden extension: ").append(file.getName());
                     continue;
                 }
                 if(numberOfFiles(path)+1>maxNumberOfFilesInDirectory(path,super.getConfiguration().getNumberOfFilesInFolder()))
                 {
-                    stringBuilder.append("There is limit for number of file for this folder: "+file.getName());
+                    stringBuilder.append("There is limit for number of file for this folder: ").append(file.getName());
                     continue;
                 }
-
                 File fileMetadata = new File();
                 fileMetadata.setName(file.getName());
                 fileMetadata.setParents(Collections.singletonList(id));
@@ -654,7 +661,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            throw new MyException("Something went wrong");
+            throw new MyException(e.getMessage());
         }
 
     }////TEST OK
@@ -683,7 +690,7 @@ public class GoogleDriveStorage extends StorageSpecification{
             String id2=retFolderIDForPath(pathTo,super.getRootFolderPath());
             if(id==null || id2==null)
             {
-                throw new MyException("");
+                throw new MyException("Not good path");
             }
             if(numberOfFiles(pathTo)+1>maxNumberOfFilesInDirectory(pathTo,super.getConfiguration().getNumberOfFilesInFolder()))
             {
@@ -701,7 +708,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            throw new MyException("Something went wrong");
+            throw new MyException(e.getMessage());
         }
 
     }///TEST OK
@@ -739,9 +746,9 @@ public class GoogleDriveStorage extends StorageSpecification{
         try
         {
             java.io.File f1=new java.io.File(pathTo);
-            if(!f1.exists())
+            if(!f1.exists() || !f1.isDirectory())
             {
-                return;
+                throw new MyException("Folder doesn't exist or its not folder");
             }
             File file=service.files().get(fileID).execute();
             java.io.File f=new java.io.File(pathTo+"\\"+file.getName());
@@ -755,7 +762,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            throw new MyException("Something went wrong");
+            throw new MyException(e.getMessage());
         }
     }
 
@@ -810,7 +817,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            throw new MyException("Something went wrong");
+            throw new MyException(e.getMessage());
         }
     } ///TEST OK
 
@@ -835,14 +842,14 @@ public class GoogleDriveStorage extends StorageSpecification{
     //----------------------------------------------------Treci deo-------------------------------------------------------
 
     @Override
-    Map<String, FileMetadata> filesFromDirectory(String path) {
+    Map<String, FileMetadata> filesFromDirectory(String path) throws MyException{
         HashMap<String, FileMetadata> hashMap=new HashMap<>();
         try
         {
             String id=retFolderIDForPath(path,super.getRootFolderPath());
             if(id==null)
             {
-                return null;
+                throw new MyException("Bad path");
             }
             if(service==null)
             {
@@ -870,20 +877,19 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            e.printStackTrace();
-            return null;
+            throw new MyException(e.getMessage());
         }
     } ///TEST OK
 
     @Override
-    Map<String, FileMetadata> filesFromChildrenDirectory(String path) {
+    Map<String, FileMetadata> filesFromChildrenDirectory(String path) throws MyException{
         HashMap<String, FileMetadata> hashMap=new HashMap<>();
         try
         {
             String id=retFolderIDForPath(path,super.getRootFolderPath());
             if(id==null)
             {
-                return null;
+                throw new MyException("Bad path");
             }
             if(service==null)
             {
@@ -916,20 +922,19 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            e.printStackTrace();
-            return null;
+            throw new MyException(e.getMessage());
         }
     }///TEST OK
 
     @Override
-    Map<String, FileMetadata> allFilesFromDirectoryAndSubdirectory(String path) {
+    Map<String, FileMetadata> allFilesFromDirectoryAndSubdirectory(String path) throws MyException{
         HashMap<String, FileMetadata> hashMap=new HashMap<>();
         try
         {
             String id=retFolderIDForPath(path,super.getRootFolderPath());
             if(id==null)
             {
-                return null;
+                throw new MyException("Bad path");
             }
             if(service==null)
             {
@@ -964,19 +969,18 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            e.printStackTrace();
-            return null;
+            throw new MyException(e.getMessage());
         }
 
     }///TEST OK
 
 
     @Override
-    Map<String, FileMetadata> filesFromDirectoryExt(String path, List<String> list) {
+    Map<String, FileMetadata> filesFromDirectoryExt(String path, List<String> list) throws MyException{
         Map<String,FileMetadata> fileMap = filesFromDirectory(path);
         if(fileMap==null)
         {
-            return null;
+            throw new MyException("Null pointer");
         }
         HashMap<String, FileMetadata> retFileMap = new HashMap<>();
         for(Map.Entry<String, FileMetadata> entry : fileMap.entrySet())
@@ -990,11 +994,11 @@ public class GoogleDriveStorage extends StorageSpecification{
     }///TEST OK
 
     @Override
-    Map<String, FileMetadata> filesFromChildrenDirectoryExt(String path, List<String> list) {
+    Map<String, FileMetadata> filesFromChildrenDirectoryExt(String path, List<String> list) throws MyException{
         Map<String,FileMetadata> fileMap = filesFromChildrenDirectory(path);
         if(fileMap==null)
         {
-            return null;
+            throw new MyException("Null pointer");
         }
         HashMap<String, FileMetadata> retFileMap = new HashMap<>();
         for(Map.Entry<String, FileMetadata> entry : fileMap.entrySet())
@@ -1008,11 +1012,11 @@ public class GoogleDriveStorage extends StorageSpecification{
     }///TEST OK
 
     @Override
-    Map<String, FileMetadata> allFilesFromDirectoryAndSubdirectoryExt(String path, List<String> list) {
+    Map<String, FileMetadata> allFilesFromDirectoryAndSubdirectoryExt(String path, List<String> list) throws MyException{
         Map<String,FileMetadata> fileMap = allFilesFromDirectoryAndSubdirectory(path);
         if(fileMap==null)
         {
-            return null;
+            throw new MyException("Null pointer");
         }
         HashMap<String, FileMetadata> retFileMap = new HashMap<>();
         for(Map.Entry<String, FileMetadata> entry : fileMap.entrySet())
@@ -1028,11 +1032,11 @@ public class GoogleDriveStorage extends StorageSpecification{
 
 
     @Override
-    Map<String, FileMetadata> filesFromDirectorySubstring(String path, String substring) {
+    Map<String, FileMetadata> filesFromDirectorySubstring(String path, String substring) throws MyException{
         Map<String,FileMetadata> fileMap = filesFromDirectory(path);
         if(fileMap==null)
         {
-            return null;
+            throw new MyException("Null pointer");
         }
         HashMap<String, FileMetadata> retFileMap = new HashMap<>();
         for(Map.Entry<String, FileMetadata> entry : fileMap.entrySet())
@@ -1046,12 +1050,12 @@ public class GoogleDriveStorage extends StorageSpecification{
     }///TEST OK
 
     @Override
-    Map<String, FileMetadata> filesFromChildrenDirectorySubstring(String path, String substring) {
+    Map<String, FileMetadata> filesFromChildrenDirectorySubstring(String path, String substring) throws MyException{
 
         Map<String,FileMetadata> fileMap = filesFromChildrenDirectory(path);
         if(fileMap==null)
         {
-            return null;
+            throw new MyException("Null pointer");
         }
         HashMap<String, FileMetadata> retFileMap = new HashMap<>();
         for(Map.Entry<String, FileMetadata> entry : fileMap.entrySet())
@@ -1065,11 +1069,11 @@ public class GoogleDriveStorage extends StorageSpecification{
     }///TEST OK
 
     @Override
-    Map<String, FileMetadata> filesFromDirectoryAndSubdirectorySubstring(String path, String substring) {
+    Map<String, FileMetadata> filesFromDirectoryAndSubdirectorySubstring(String path, String substring) throws MyException{
         Map<String,FileMetadata> fileMap = allFilesFromDirectoryAndSubdirectory(path);
         if(fileMap==null)
         {
-            return null;
+            throw new MyException("Null pointer");
         }
         HashMap<String, FileMetadata> retFileMap = new HashMap<>();
         for(Map.Entry<String, FileMetadata> entry : fileMap.entrySet())
@@ -1085,13 +1089,13 @@ public class GoogleDriveStorage extends StorageSpecification{
 
 
     @Override
-    String doesDirectoryContainFiles(String pathToFolder,List<String> namesOfFiles) {
+    String doesDirectoryContainFiles(String pathToFolder,List<String> namesOfFiles) throws MyException{
         try
         {
             String id=retFolderIDForPath(pathToFolder,super.getRootFolderPath());
             if(id==null)
             {
-                return null;
+                throw new MyException("Bad path");
             }
             if(service==null)
             {
@@ -1127,19 +1131,18 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            e.printStackTrace();
-            return null;
+            throw new MyException(e.getMessage());
         }
     }
 
     @Override
-    String folderNameByFileName(String fileName) {
+    String folderNameByFileName(String fileName) throws MyException{
         try
         {
-            String id=retRootFolderID(super.getRootFolderPath());
+            String id=retFolderIDForPath(".",super.getRootFolderPath());
             if(id==null)
             {
-                return null;
+                throw new MyException("Bad path");
             }
             if(service==null)
             {
@@ -1190,8 +1193,8 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            e.printStackTrace();
-            return null;
+            throw new MyException(e.getMessage());
+
         }
     }
 
@@ -1223,7 +1226,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            throw new MyException("Something went wrong");
+            throw new MyException(e.getMessage());
         }
 
     }
@@ -1256,7 +1259,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            throw new MyException("Something went wrong");
+            throw new MyException(e.getMessage());
         }
     }
 
@@ -1288,7 +1291,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            throw new MyException("Something went wrong");
+            throw new MyException(e.getMessage());
         }
     }
 
@@ -1320,12 +1323,12 @@ public class GoogleDriveStorage extends StorageSpecification{
         }
         catch (Exception e)
         {
-            throw new MyException("Something went wrong");
+            throw new MyException(e.getMessage());
         }
     }
 
     @Override
-    void addLimitForFolder(String path, int limit) {
+    void addLimitForFolder(String path, int limit) throws MyException{
         try{
             String id=retFolderIDForPath("",super.getRootFolderPath());
             FileList files;
@@ -1374,6 +1377,11 @@ public class GoogleDriveStorage extends StorageSpecification{
         {
 
         }
+    }
+
+    @Override
+    public void mkdirCreateFiles(String s, String s1) {
+
     }
 
 
