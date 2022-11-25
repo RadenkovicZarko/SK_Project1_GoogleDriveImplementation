@@ -313,7 +313,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         StorageSpecification storageSpecification=new GoogleDriveStorage();
         GoogleDriveStorage googleDriveStorage=new GoogleDriveStorage();
 
-        storageSpecification.setRootFolderPathInitialization(".");
+        storageSpecification.setRootFolderPathInitialization("/asdasd");
         storageSpecification.createRootFolder();
 //        storageSpecification.createFolderOnSpecifiedPath(".","Zarko");
         storageSpecification.mkdirCreateFiles("mkdir abc{101}","/Zarko");
@@ -471,6 +471,12 @@ public class GoogleDriveStorage extends StorageSpecification{
 
         try {
             String id = retFolderIDForPath(path, "");
+            if (!id.isEmpty())
+            {
+                File f=service.files().get(id).execute();
+                if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
+                    throw new MyException("Is not folder");
+            }
         }
         catch (Exception e)
         {
@@ -497,6 +503,12 @@ public class GoogleDriveStorage extends StorageSpecification{
             if(id==null)
             {
                 throw new MyException("Bad path");
+            }
+            if (!id.isEmpty())
+            {
+                File f=service.files().get(id).execute();
+                if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
+                    throw new MyException("Is not folder");
             }
             File folderMetadata = new File();
             folderMetadata.setName(name);
@@ -597,6 +609,12 @@ public class GoogleDriveStorage extends StorageSpecification{
             {
                 throw new MyException("Bad path");
             }
+            if (!id.isEmpty())
+            {
+                File f=service.files().get(id).execute();
+                if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
+                    throw new MyException("Is not folder");
+            }
 
             Long sizeOfPathFolder = sizeOfFolder(path);
 
@@ -683,6 +701,15 @@ public class GoogleDriveStorage extends StorageSpecification{
             {
                 throw new MyException("Not good path");
             }
+
+            if (!id2.isEmpty())
+            {
+                File f=service.files().get(id2).execute();
+                if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
+                    throw new MyException("Is not folder");
+            }
+
+
             if(numberOfFiles(pathTo)+1>maxNumberOfFilesInDirectory(pathTo,super.getConfiguration().getNumberOfFilesInFolder()))
             {
                 throw new MyException("There is limit for number of file for this folder");
@@ -842,6 +869,12 @@ public class GoogleDriveStorage extends StorageSpecification{
             {
                 throw new MyException("Bad path");
             }
+            if (!id.isEmpty())
+            {
+                File f=service.files().get(id).execute();
+                if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
+                    throw new MyException("Is not folder");
+            }
             if(service==null)
             {
                 service=getDriveService();
@@ -881,6 +914,12 @@ public class GoogleDriveStorage extends StorageSpecification{
             if(id==null)
             {
                 throw new MyException("Bad path");
+            }
+            if (!id.isEmpty())
+            {
+                File f=service.files().get(id).execute();
+                if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
+                    throw new MyException("Is not folder");
             }
             if(service==null)
             {
@@ -925,6 +964,12 @@ public class GoogleDriveStorage extends StorageSpecification{
             if(id==null)
             {
                 throw new MyException("Bad path");
+            }
+            if (!id.isEmpty())
+            {
+                File f=service.files().get(id).execute();
+                if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
+                    throw new MyException("Is not folder");
             }
             if(service==null)
             {
@@ -1086,6 +1131,12 @@ public class GoogleDriveStorage extends StorageSpecification{
             {
                 throw new MyException("Bad path");
             }
+            if (!id.isEmpty())
+            {
+                File f=service.files().get(id).execute();
+                if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
+                    throw new MyException("Is not folder");
+            }
             if(service==null)
             {
                 service=getDriveService();
@@ -1195,6 +1246,12 @@ public class GoogleDriveStorage extends StorageSpecification{
             {
                 throw new MyException("Bad path");
             }
+            if (!id.isEmpty())
+            {
+                File f=service.files().get(id).execute();
+                if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
+                    throw new MyException("Is not folder");
+            }
             Map<String, FileMetadata> map=new LinkedHashMap<>();
             FileList files;
             if(!id.equals(""))
@@ -1228,6 +1285,12 @@ public class GoogleDriveStorage extends StorageSpecification{
             {
                 throw new MyException("Bad path");
             }
+            if (!id.isEmpty())
+            {
+                File f=service.files().get(id).execute();
+                if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
+                    throw new MyException("Is not folder");
+            }
             Map<String, FileMetadata> map=new LinkedHashMap<>();
             FileList files;
             if(!id.equals(""))
@@ -1260,6 +1323,12 @@ public class GoogleDriveStorage extends StorageSpecification{
             {
                 throw new MyException("Bad path");
             }
+            if (!id.isEmpty())
+            {
+                File f=service.files().get(id).execute();
+                if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
+                    throw new MyException("Is not folder");
+            }
             Map<String, FileMetadata> map=new LinkedHashMap<>();
             FileList files;
             if(!id.equals(""))
@@ -1291,6 +1360,12 @@ public class GoogleDriveStorage extends StorageSpecification{
             if(id==null)
             {
                 throw new MyException("Bad path");
+            }
+            if (!id.isEmpty())
+            {
+                File f=service.files().get(id).execute();
+                if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
+                    throw new MyException("Is not folder");
             }
             Map<String, FileMetadata> map=new LinkedHashMap<>();
             FileList files;
@@ -1391,10 +1466,12 @@ public class GoogleDriveStorage extends StorageSpecification{
             {
                 throw new MyException("Bad path");
             }
-
-            File f=service.files().get(id).execute();
-            if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
-                throw new MyException("Is not folder");
+            if (!id.isEmpty())
+            {
+                File f=service.files().get(id).execute();
+                if(!f.getMimeType().equals("application/vnd.google-apps.folder"))
+                    throw new MyException("Is not folder");
+            }
 
             if(!input.contains("{") || !input.contains("}") || !input.contains("mkdir") || !input.contains(" "))
                 throw new MyException("Input format invalid.");
