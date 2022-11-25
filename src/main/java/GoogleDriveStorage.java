@@ -316,7 +316,7 @@ public class GoogleDriveStorage extends StorageSpecification{
         storageSpecification.setRootFolderPathInitialization(".");
         storageSpecification.createRootFolder();
 //        storageSpecification.createFolderOnSpecifiedPath(".","Zarko");
-        storageSpecification.mkdirCreateFiles("mkdir abc{101}","/configuration.txt");
+        storageSpecification.mkdirCreateFiles("mkdir abc{101}","/Zarko");
 
     }
 
@@ -1404,7 +1404,7 @@ public class GoogleDriveStorage extends StorageSpecification{
             for(Character ch:input.toCharArray())
             {
                 if(ch=='{')countOpen++;
-                if(ch=='}')countClose--;
+                if(ch=='}')countClose++;
             }
 
             if(countClose!=1 || countOpen!=1)
