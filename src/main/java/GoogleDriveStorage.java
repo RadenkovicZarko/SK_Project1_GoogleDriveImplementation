@@ -36,6 +36,7 @@ public class GoogleDriveStorage extends StorageSpecification{
     private static HttpTransport HTTP_TRANSPORT;
     private static final List<String> SCOPES = Arrays.asList(DriveScopes.DRIVE);
 
+
     public GoogleDriveStorage() {
         super();
     }
@@ -156,7 +157,7 @@ public class GoogleDriveStorage extends StorageSpecification{
             else
                 for(String p:listParentFolders)
                 {
-                   if(p.equals(idRootFolder))
+                    if(p.equals(idRootFolder))
                         return p;
                 }
 
@@ -307,21 +308,6 @@ public class GoogleDriveStorage extends StorageSpecification{
     }
 
 
-    ///TODO -> MAIN
-
-    public static void main(String[] args) throws IOException {
-        StorageSpecification storageSpecification=new GoogleDriveStorage();
-        GoogleDriveStorage googleDriveStorage=new GoogleDriveStorage();
-
-        storageSpecification.setRootFolderPathInitialization("/asdasd");
-        storageSpecification.createRootFolder();
-//        storageSpecification.createFolderOnSpecifiedPath(".","Zarko");
-        storageSpecification.mkdirCreateFiles("mkdir abc{101}","/Zarko");
-
-    }
-
-
-    ///TODO -> IMPLEMENTATION OF ABSTRACT CLASSES
 
     //---------------------------------------------------Prvi deo---------------------------------------------------------------- RADI
 
@@ -1049,7 +1035,7 @@ public class GoogleDriveStorage extends StorageSpecification{
             }
         }
         return retFileMap;
-    }///TEST OK
+    }
 
     @Override
     Map<String, FileMetadata> allFilesFromDirectoryAndSubdirectoryExt(String path, List<String> list) throws MyException{
