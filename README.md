@@ -31,16 +31,14 @@ After successfully building and installing the project, you can include it as a 
 
 
 
-
 # Testing
 To test the Storage Management Library, you will need to download and install two additional repositories, along with the test repository. Follow the steps below to set up your environment for testing.
 
 Step 1: Clone the Repositories
-First, clone this repository as well as two additional repositories required for testing(SK_Project1_GoogleDriveImplementation, SK_Project1_LocalStorageImplementation), also you should clone SK_Project1_TestApk repository. 
+First, clone this repository as well as two additional repositories required for testing(SK_Project1_GoogleDriveImplementation, SK_Project1_LocalStorageImplementation, SK_Project1_Specification), also you should clone SK_Project1_TestApk repository. 
 
 Step 2: Install the Projects
 Navigate to each cloned repository's root directory and run the Maven install command. This will compile the projects and install them to your local Maven repository, making them available as dependencies.
 Command for all three repositories (SK_Project1_Specification, SK_Project1_GoogleDriveImplementation, SK_Project1_LocalStorageImplementation) is mvn clean install
 
 Step 3: Run main in project SK_Project1_TestApk
-
