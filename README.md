@@ -2,6 +2,9 @@
 
 This Java library seamlessly integrates with Google Drive, offering a robust solution for file and directory management in cloud storage. It simplifies tasks like authorization, file uploads, downloads, and metadata retrieval with Google Drive's API. Designed for efficiency and ease of use, it provides a foundation for developing applications requiring cloud storage capabilities.
 
+This repository showcases a practical example of implementing a specification for local file storage management as part of a software components course. It demonstrates how to create dependencies and configure a project using Maven, offering a hands-on approach to understanding component-based software engineering. This project serves as a clear illustration of applying theoretical concepts in software components to a tangible Java application, emphasizing the importance of modular design and dependency management in modern software development.
+
+
 # Getting Started
 
 ## Prerequisites
